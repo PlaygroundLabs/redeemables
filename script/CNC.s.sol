@@ -22,12 +22,10 @@ contract DeployAndConfigure1155Receive is Script, Test {
     address CNC_TREASURY = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1;
     bytes32 traitKey = bytes32("certType");
     bytes32 traitValueBlueprint = bytes32(uint256(1));
+    bytes32 traitValueGoldprint = bytes32(uint256(2));
 
     function run() external {
         vm.startBroadcast();
-
-        // bytes32 traitValueBlueprint = bytes32("blue");
-        // bytes32 traitValueGoldprint = bytes32("gold");
 
         address[] memory allowedTraitSetters = new address[](1);
         allowedTraitSetters[0] = msg.sender;
@@ -55,7 +53,7 @@ contract DeployAndConfigure1155Receive is Script, Test {
                 "SHIPS"
             );
 
-        // Configure the campaign for ships
+        // Configure campaign 1 for the ships: the blueprint campaign
 
         // Configure the offers. These are the what the user receives from the redemption
         OfferItem[] memory offer = new OfferItem[](1);
@@ -104,10 +102,6 @@ contract DeployAndConfigure1155Receive is Script, Test {
             recipient: payable(CNC_TREASURY)
         });
 
-        CampaignRequirements[] memory requirements = new CampaignRequirements[](
-            1
-        );
-
         TraitRedemption[] memory traitRedemptions = new TraitRedemption[](1);
         // TODO: can make this does not need to update the trait
         // Right now permissions are commented out in the contract so should work
@@ -120,6 +114,44 @@ contract DeployAndConfigure1155Receive is Script, Test {
             substandardValue: traitValueBlueprint // required previous value
         });
 
+        // Configure campaignRequements 2: goldprint
+        // Offers
+        OfferItem[] memory offer2 = new OfferItem[](1);
+        offer2[0] = OfferItem({
+            itemType: ItemType.ERC721_WITH_CRITERIA,
+            token: address(ships),
+            identifierOrCriteria: 0,
+            startAmount: 1,
+            endAmount: 1
+        });
+
+        // Considerations
+        ConsiderationItem[] memory consideration2 = new ConsiderationItem[](1);
+        consideration2[0] = ConsiderationItem({
+            itemType: ItemType.ERC1155_WITH_CRITERIA,
+            token: address(certificates),
+            identifierOrCriteria: 0,
+            startAmount: 1,
+            endAmount: 1,
+            recipient: payable(CNC_TREASURY) // TODO: burn address here was failing
+        });
+
+        TraitRedemption[] memory traitRedemptions2 = new TraitRedemption[](1);
+        // TODO: can make this does not need to update the trait
+        // Right now permissions are commented out in the contract so should work
+        // https://github.com/ethereum/ERCs/blob/db0ccb98c7e8c8fd9043d3b4b5fcf1827ef92cec/ERCS/erc-7498.md#metadata-uri
+        traitRedemptions2[0] = TraitRedemption({
+            substandard: 4, // an indicator integer
+            token: address(certificates),
+            traitKey: traitKey,
+            traitValue: traitValueGoldprint, // new trait value
+            substandardValue: traitValueGoldprint // required previous value
+        });
+
+        // Create the first campaign for blueprints
+        CampaignRequirements[] memory requirements = new CampaignRequirements[](
+            1
+        );
         requirements[0].offer = offer;
         requirements[0].consideration = consideration;
         requirements[0].traitRedemptions = traitRedemptions;
@@ -128,19 +160,45 @@ contract DeployAndConfigure1155Receive is Script, Test {
             requirements: requirements,
             signer: address(0),
             startTime: 0,
-            endTime: uint32(block.timestamp + 1_000_000),
+            endTime: 0,
             maxCampaignRedemptions: 1_000,
             manager: msg.sender
         });
-        ships.createCampaign(
+
+        uint campaignId1 = ships.createCampaign(
             params,
             "ipfs://QmQjubc6guHReNW5Es5ZrgDtJRwXk2Aia7BkVoLJGaCRqP"
         );
+
+        // Create the second campaign for goldprint
+        CampaignRequirements[]
+            memory requirements2 = new CampaignRequirements[](1);
+        requirements2[0].offer = offer2;
+        requirements2[0].consideration = consideration2;
+        requirements2[0].traitRedemptions = traitRedemptions2;
+        CampaignParams memory params2 = CampaignParams({
+            requirements: requirements2,
+            signer: address(0),
+            startTime: 0,
+            endTime: 0,
+            maxCampaignRedemptions: 1_000,
+            manager: msg.sender
+        });
+        uint campaignId2 = ships.createCampaign(
+            params2,
+            "ipfs://QmQjubc6guHReNW5Es5ZrgDtJRwXk2Aia7BkVoLJGaCRqP"
+        );
+
+        assertEq(campaignId1, 2);
+        assertEq(campaignId2, 2);
 
         // To test updateCampaign, update to proper start/end times.
         params.startTime = uint32(block.timestamp);
         params.endTime = uint32(block.timestamp + 1_000_000);
         ships.updateCampaign(1, params, "");
+        params2.startTime = uint32(block.timestamp);
+        params2.endTime = uint32(block.timestamp + 1_000_000);
+        ships.updateCampaign(2, params2, "");
 
         // Mint some tokens for the redeem ingredients
         certificates.mint(msg.sender, 1, 1); // certificate
@@ -200,6 +258,39 @@ contract DeployAndConfigure1155Receive is Script, Test {
         assertEq(resources.balanceOf(msg.sender, 2), 0);
         assertEq(resources.balanceOf(CNC_TREASURY, 1), 100);
         assertEq(resources.balanceOf(CNC_TREASURY, 2), 100);
+
+        // Mint tokens for the goldprint campaign
+        certificates.mint(msg.sender, 7, 1); // certificate
+        certificates.setTrait(7, traitKey, traitValueGoldprint);
+        assertEq(certificates.getTraitValue(7, traitKey), traitValueGoldprint);
+
+        uint256[] memory traitRedemptionTokenIds2 = new uint256[](1);
+        traitRedemptionTokenIds2[0] = 7;
+        bytes memory data2 = abi.encode(
+            2, // campaing id. I think this isn't being picked up by redeem
+            requirementsIndex, // 0 because only one requirements
+            redemptionHash,
+            traitRedemptionTokenIds2,
+            salt,
+            signature
+        );
+
+        uint256[] memory tokenIds2 = new uint256[](1);
+        tokenIds2[0] = 7;
+
+        assertEq(certificates.balanceOf(msg.sender, 7), 1);
+
+        ships.redeem(tokenIds2, msg.sender, data2);
+        // assertEq(ships.ownerOf(2), msg.sender);
+
+        // Verify post-redeem state
+        // // These are requiring viaIR=true in found.toml for reasons I don't understand.
+        // assertEq(certificates.balanceOf(msg.sender, 1), 0);
+        // assertEq(certificates.balanceOf(CNC_TREASURY, 1), 1);
+        // assertEq(resources.balanceOf(msg.sender, 1), 0);
+        // assertEq(resources.balanceOf(msg.sender, 2), 0);
+        // assertEq(resources.balanceOf(CNC_TREASURY, 1), 100);
+        // assertEq(resources.balanceOf(CNC_TREASURY, 2), 100);
 
         // Confirm they can't redeem again because they don't have enough ingreidents
         // TODO: not sure how to do this outside of a test
