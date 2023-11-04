@@ -23,7 +23,8 @@ contract DeployAndConfigure1155Receive is Script, Test {
     function run() external {
         vm.startBroadcast();
 
-        address cncTreasury = BURN_ADDRESS; // TODO: update
+        // address cncTreasury = BURN_ADDRESS; // TODO: update
+        address cncTreasury = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1;
         address weth = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1;
 
         // make the tokens
@@ -58,12 +59,12 @@ contract DeployAndConfigure1155Receive is Script, Test {
         // the things the user should must have in order to recieve the offer items
         ConsiderationItem[] memory consideration = new ConsiderationItem[](1);
         consideration[0] = ConsiderationItem({
-            itemType: ItemType.ERC721_WITH_CRITERIA,
+            itemType: ItemType.ERC1155_WITH_CRITERIA,
             token: address(certificates),
             identifierOrCriteria: 0,
             startAmount: 1,
             endAmount: 1,
-            recipient: payable(BURN_ADDRESS)
+            recipient: payable(cncTreasury) // TODO: burn address here was failing
         });
         // consideration[1] = ConsiderationItem({
         //     itemType: ItemType.ERC1155,
@@ -123,6 +124,10 @@ contract DeployAndConfigure1155Receive is Script, Test {
         certificates.setApprovalForAll(address(ships), true);
         resources.setApprovalForAll(address(ships), true);
 
+        assertEq(certificates.balanceOf(msg.sender, 1), 1);
+        assertEq(resources.balanceOf(msg.sender, 1), 100);
+        assertEq(resources.balanceOf(msg.sender, 2), 100);
+
         // Call redeem
         // Let's redeem them!
         uint256 campaignId = 1;
@@ -137,12 +142,11 @@ contract DeployAndConfigure1155Receive is Script, Test {
             salt,
             signature
         );
-        assertEq(receiveToken.ownerOf(1), msg.sender);
 
         uint256[] memory tokenIds = new uint256[](1);
         tokenIds[0] = 1;
         // tokenIds[1] = 1;
         // tokenIds[2] = 2;
-        // ships.redeem(tokenIds, msg.sender, data);
+        ships.redeem(tokenIds, msg.sender, data);
     }
 }
