@@ -10,8 +10,6 @@ import {BURN_ADDRESS} from "../src/lib/RedeemablesConstants.sol";
 import {ERC721RedemptionMintable} from "../src/extensions/ERC721RedemptionMintable.sol";
 import {ERC721OwnerMintable} from "../src/test/ERC721OwnerMintable.sol";
 
-// TODO: switched to owner mintable
-
 // import {ERC1155ShipyardRedeemableMintable} from "../src/extensions/ERC1155ShipyardRedeemableMintable.sol";
 import {ERC721ShipyardRedeemableMintable} from "../src/extensions/ERC721ShipyardRedeemableMintable.sol";
 
@@ -24,8 +22,6 @@ contract DeployAndConfigure1155Receive is Script, Test {
     address CNC_TREASURY = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1;
     bytes32 traitKey = bytes32("certType");
     bytes32 traitValueBlueprint = bytes32(uint256(1));
-
-    // address CNC_TREASURY = BURN_ADDRESS; // TODO: update
 
     function run() external {
         vm.startBroadcast();
@@ -148,7 +144,7 @@ contract DeployAndConfigure1155Receive is Script, Test {
 
         // Mint some tokens for the redeem ingredients
         certificates.mint(msg.sender, 1, 1); // certificate
-        resources.mint(msg.sender, 1, 100); // metal // TODO: shoudl this start at 0 or 1?
+        resources.mint(msg.sender, 1, 100); // metal
         resources.mint(msg.sender, 2, 100); // wood
         weth.mint(msg.sender, 1, 1200); // weth
 
