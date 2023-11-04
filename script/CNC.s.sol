@@ -117,11 +117,11 @@ contract DeployAndConfigure1155Receive is Script, Test {
         // Right now permissions are commented out in the contract so should work
         // https://github.com/ethereum/ERCs/blob/db0ccb98c7e8c8fd9043d3b4b5fcf1827ef92cec/ERCS/erc-7498.md#metadata-uri
         traitRedemptions[0] = TraitRedemption({
-            substandard: 4,
+            substandard: 4, // an indicator integer
             token: address(certificates),
             traitKey: traitKey,
             traitValue: traitValueBlueprint, // new trait value
-            substandardValue: bytes32(uint256(1))
+            substandardValue: traitValueBlueprint // required previous value
         });
 
         requirements[0].offer = offer;
@@ -193,15 +193,17 @@ contract DeployAndConfigure1155Receive is Script, Test {
         ships.redeem(tokenIds, msg.sender, data);
 
         // Verify post-redeem state
-        // assertEq(certificates.balanceOf(msg.sender, 1), 0);
-        // assertEq(certificates.balanceOf(CNC_TREASURY, 1), 1);
+        assertEq(ships.ownerOf(1), msg.sender);
+        assertEq(weth.balanceOf(msg.sender, 1), 700);
+        assertEq(weth.balanceOf(CNC_TREASURY, 1), 500);
+
+        // These are requiring viaIR=true in found.toml for reasons I don't understand.
+        assertEq(certificates.balanceOf(msg.sender, 1), 0);
+        assertEq(certificates.balanceOf(CNC_TREASURY, 1), 1);
         assertEq(resources.balanceOf(msg.sender, 1), 0);
         assertEq(resources.balanceOf(msg.sender, 2), 0);
         assertEq(resources.balanceOf(CNC_TREASURY, 1), 100);
         assertEq(resources.balanceOf(CNC_TREASURY, 2), 100);
-        assertEq(weth.balanceOf(msg.sender, 1), 700);
-        assertEq(weth.balanceOf(CNC_TREASURY, 1), 500);
-        assertEq(ships.ownerOf(1), msg.sender);
 
         // Confirm they can't redeem again because they don't have enough ingreidents
         // TODO: not sure how to do this outside of a test
