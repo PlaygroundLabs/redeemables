@@ -20,11 +20,13 @@ import {ERC721ShipyardRedeemableOwnerMintable} from "../src/test/ERC721ShipyardR
 import {ERC1155ShipyardRedeemableOwnerMintable} from "../src/test/ERC1155ShipyardRedeemableOwnerMintable.sol";
 
 contract DeployAndConfigure1155Receive is Script, Test {
+    address CNC_TREASURY = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1;
+
+    // address CNC_TREASURY = BURN_ADDRESS; // TODO: update
+
     function run() external {
         vm.startBroadcast();
 
-        // address cncTreasury = BURN_ADDRESS; // TODO: update
-        address cncTreasury = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1;
         address weth = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1;
 
         // make the tokens
@@ -64,7 +66,7 @@ contract DeployAndConfigure1155Receive is Script, Test {
             identifierOrCriteria: 0,
             startAmount: 1,
             endAmount: 1,
-            recipient: payable(cncTreasury) // TODO: burn address here was failing
+            recipient: payable(CNC_TREASURY) // TODO: burn address here was failing
         });
         // consideration[1] = ConsiderationItem({
         //     itemType: ItemType.ERC1155,
@@ -72,7 +74,7 @@ contract DeployAndConfigure1155Receive is Script, Test {
         //     identifierOrCriteria: 1,
         //     startAmount: 100,
         //     endAmount: 100,
-        //     recipient: payable(cncTreasury)
+        //     recipient: payable(CNC_TREASURY)
         // });
         // consideration[2] = ConsiderationItem({
         //     itemType: ItemType.ERC1155,
@@ -80,7 +82,7 @@ contract DeployAndConfigure1155Receive is Script, Test {
         //     identifierOrCriteria: 2,
         //     startAmount: 100,
         //     endAmount: 100,
-        //     recipient: payable(cncTreasury)
+        //     recipient: payable(CNC_TREASURY)
         // });
         // TODO: ask Ryan about how to do an ERC20 here
         // consideration[3] = ConsiderationItem({
@@ -89,7 +91,7 @@ contract DeployAndConfigure1155Receive is Script, Test {
         //     identifierOrCriteria: 0,
         //     startAmount: 200,
         //     endAmount: 200,
-        //     recipient: payable(cncTreasury)
+        //     recipient: payable(CNC_TREASURY)
         // });
 
         CampaignRequirements[] memory requirements = new CampaignRequirements[](
@@ -128,6 +130,13 @@ contract DeployAndConfigure1155Receive is Script, Test {
         assertEq(resources.balanceOf(msg.sender, 1), 100);
         assertEq(resources.balanceOf(msg.sender, 2), 100);
 
+        // Verify pre-redeem state
+        assertEq(certificates.balanceOf(msg.sender, 1), 1);
+        assertEq(certificates.balanceOf(address(CNC_TREASURY), 1), 0);
+        assertEq(resources.balanceOf(msg.sender, 1), 100);
+        assertEq(resources.balanceOf(msg.sender, 2), 100);
+        assertEq(ships.balanceOf(address(CNC_TREASURY)), 0);
+
         // Call redeem
         // Let's redeem them!
         uint256 campaignId = 1;
@@ -147,6 +156,14 @@ contract DeployAndConfigure1155Receive is Script, Test {
         tokenIds[0] = 1;
         // tokenIds[1] = 1;
         // tokenIds[2] = 2;
+
         ships.redeem(tokenIds, msg.sender, data);
+
+        // Verify post-redeem state
+        assertEq(certificates.balanceOf(msg.sender, 1), 0);
+        assertEq(certificates.balanceOf(address(CNC_TREASURY), 1), 1);
+        assertEq(resources.balanceOf(msg.sender, 1), 100);
+        assertEq(resources.balanceOf(msg.sender, 2), 100);
+        assertEq(ships.ownerOf(1), msg.sender);
     }
 }
