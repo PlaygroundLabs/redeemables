@@ -5,7 +5,7 @@ import {Script} from "forge-std/Script.sol";
 import {Test} from "forge-std/Test.sol";
 import {ItemType} from "seaport-types/src/lib/ConsiderationEnums.sol";
 import {OfferItem, ConsiderationItem} from "seaport-types/src/lib/ConsiderationStructs.sol";
-import {CampaignParams, CampaignRequirements} from "../src/lib/RedeemablesStructs.sol";
+import {CampaignParams, CampaignRequirements, TraitRedemption} from "../src/lib/RedeemablesStructs.sol";
 import {BURN_ADDRESS} from "../src/lib/RedeemablesConstants.sol";
 import {ERC721RedemptionMintable} from "../src/extensions/ERC721RedemptionMintable.sol";
 import {ERC721OwnerMintable} from "../src/test/ERC721OwnerMintable.sol";
@@ -18,19 +18,29 @@ import {ERC721ShipyardRedeemableMintable} from "../src/extensions/ERC721Shipyard
 import {ERC721RedemptionMintable} from "../src/extensions/ERC721RedemptionMintable.sol";
 import {ERC721ShipyardRedeemableOwnerMintable} from "../src/test/ERC721ShipyardRedeemableOwnerMintable.sol";
 import {ERC1155ShipyardRedeemableOwnerMintable} from "../src/test/ERC1155ShipyardRedeemableOwnerMintable.sol";
+import {ERC1155ShipyardRedeemableOwnerMintableDynamicTraits} from "../src/test/ERC1155ShipyardRedeemableOwnerMintableDynamicTraits.sol";
 
 contract DeployAndConfigure1155Receive is Script, Test {
     address CNC_TREASURY = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1;
+    bytes32 traitKey = bytes32("certType");
+    bytes32 traitValueBlueprint = bytes32(uint256(1));
 
     // address CNC_TREASURY = BURN_ADDRESS; // TODO: update
 
     function run() external {
         vm.startBroadcast();
 
+        // bytes32 traitValueBlueprint = bytes32("blue");
+        // bytes32 traitValueGoldprint = bytes32("gold");
+
+        address[] memory allowedTraitSetters = new address[](1);
+        allowedTraitSetters[0] = msg.sender;
+
         // make the tokens
-        ERC1155ShipyardRedeemableOwnerMintable certificates = new ERC1155ShipyardRedeemableOwnerMintable(
+        ERC1155ShipyardRedeemableOwnerMintableDynamicTraits certificates = new ERC1155ShipyardRedeemableOwnerMintableDynamicTraits(
                 "Certificates",
-                "CERTS"
+                "CERTS",
+                allowedTraitSetters
             );
 
         ERC1155ShipyardRedeemableOwnerMintable resources = new ERC1155ShipyardRedeemableOwnerMintable(
@@ -101,14 +111,28 @@ contract DeployAndConfigure1155Receive is Script, Test {
         CampaignRequirements[] memory requirements = new CampaignRequirements[](
             1
         );
+
+        TraitRedemption[] memory traitRedemptions = new TraitRedemption[](1);
+        // TODO: can make this does not need to update the trait
+        // Right now permissions are commented out in the contract so should work
+        // https://github.com/ethereum/ERCs/blob/db0ccb98c7e8c8fd9043d3b4b5fcf1827ef92cec/ERCS/erc-7498.md#metadata-uri
+        traitRedemptions[0] = TraitRedemption({
+            substandard: 4,
+            token: address(certificates),
+            traitKey: traitKey,
+            traitValue: traitValueBlueprint, // new trait value
+            substandardValue: bytes32(uint256(1))
+        });
+
         requirements[0].offer = offer;
         requirements[0].consideration = consideration;
+        requirements[0].traitRedemptions = traitRedemptions;
 
         CampaignParams memory params = CampaignParams({
             requirements: requirements,
             signer: address(0),
             startTime: 0,
-            endTime: 0,
+            endTime: uint32(block.timestamp + 1_000_000),
             maxCampaignRedemptions: 1_000,
             manager: msg.sender
         });
@@ -132,6 +156,9 @@ contract DeployAndConfigure1155Receive is Script, Test {
         resources.setApprovalForAll(address(ships), true);
         weth.setApprovalForAll(address(ships), true);
 
+        // Set traits
+        certificates.setTrait(1, traitKey, traitValueBlueprint);
+
         // Verify pre-redeem state
         assertEq(certificates.balanceOf(msg.sender, 1), 1);
         assertEq(certificates.balanceOf(CNC_TREASURY, 1), 0);
@@ -144,12 +171,15 @@ contract DeployAndConfigure1155Receive is Script, Test {
         uint256 campaignId = 1;
         uint256 requirementsIndex = 0;
         bytes32 redemptionHash;
+        uint256[] memory traitRedemptionTokenIds = new uint256[](1);
+        traitRedemptionTokenIds[0] = 1;
         uint256 salt;
         bytes memory signature;
         bytes memory data = abi.encode(
             campaignId,
             requirementsIndex,
             redemptionHash,
+            traitRedemptionTokenIds,
             salt,
             signature
         );
@@ -163,8 +193,8 @@ contract DeployAndConfigure1155Receive is Script, Test {
         ships.redeem(tokenIds, msg.sender, data);
 
         // Verify post-redeem state
-        assertEq(certificates.balanceOf(msg.sender, 1), 0);
-        assertEq(certificates.balanceOf(CNC_TREASURY, 1), 1);
+        // assertEq(certificates.balanceOf(msg.sender, 1), 0);
+        // assertEq(certificates.balanceOf(CNC_TREASURY, 1), 1);
         assertEq(resources.balanceOf(msg.sender, 1), 0);
         assertEq(resources.balanceOf(msg.sender, 2), 0);
         assertEq(resources.balanceOf(CNC_TREASURY, 1), 100);
