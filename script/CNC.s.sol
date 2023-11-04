@@ -27,8 +27,6 @@ contract DeployAndConfigure1155Receive is Script, Test {
     function run() external {
         vm.startBroadcast();
 
-        address weth = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1;
-
         // make the tokens
         ERC1155ShipyardRedeemableOwnerMintable certificates = new ERC1155ShipyardRedeemableOwnerMintable(
                 "Certificates",
@@ -38,6 +36,12 @@ contract DeployAndConfigure1155Receive is Script, Test {
         ERC1155ShipyardRedeemableOwnerMintable resources = new ERC1155ShipyardRedeemableOwnerMintable(
                 "Resources",
                 "RSRCS"
+            );
+
+        // TODO: using ERC1155 as placeholder for WETH
+        ERC1155ShipyardRedeemableOwnerMintable weth = new ERC1155ShipyardRedeemableOwnerMintable(
+                "Wrapped ETH",
+                "WETH"
             );
 
         ERC721ShipyardRedeemableMintable ships = new ERC721ShipyardRedeemableMintable(
@@ -59,7 +63,7 @@ contract DeployAndConfigure1155Receive is Script, Test {
 
         // Configure the considerations. These are the inputs to the redeem,
         // the things the user should must have in order to recieve the offer items
-        ConsiderationItem[] memory consideration = new ConsiderationItem[](1);
+        ConsiderationItem[] memory consideration = new ConsiderationItem[](4);
         consideration[0] = ConsiderationItem({
             itemType: ItemType.ERC1155_WITH_CRITERIA,
             token: address(certificates),
@@ -68,31 +72,31 @@ contract DeployAndConfigure1155Receive is Script, Test {
             endAmount: 1,
             recipient: payable(CNC_TREASURY) // TODO: burn address here was failing
         });
-        // consideration[1] = ConsiderationItem({
-        //     itemType: ItemType.ERC1155,
-        //     token: address(resources),
-        //     identifierOrCriteria: 1,
-        //     startAmount: 100,
-        //     endAmount: 100,
-        //     recipient: payable(CNC_TREASURY)
-        // });
-        // consideration[2] = ConsiderationItem({
-        //     itemType: ItemType.ERC1155,
-        //     token: address(resources),
-        //     identifierOrCriteria: 2,
-        //     startAmount: 100,
-        //     endAmount: 100,
-        //     recipient: payable(CNC_TREASURY)
-        // });
-        // TODO: ask Ryan about how to do an ERC20 here
-        // consideration[3] = ConsiderationItem({
-        //     itemType: ItemType.ERC20_WITH_CRITERIA,
-        //     token: address(resources),
-        //     identifierOrCriteria: 0,
-        //     startAmount: 200,
-        //     endAmount: 200,
-        //     recipient: payable(CNC_TREASURY)
-        // });
+        consideration[1] = ConsiderationItem({
+            itemType: ItemType.ERC1155,
+            token: address(resources),
+            identifierOrCriteria: 1,
+            startAmount: 100,
+            endAmount: 100,
+            recipient: payable(CNC_TREASURY)
+        });
+        consideration[2] = ConsiderationItem({
+            itemType: ItemType.ERC1155,
+            token: address(resources),
+            identifierOrCriteria: 2,
+            startAmount: 100,
+            endAmount: 100,
+            recipient: payable(CNC_TREASURY)
+        });
+        // TODO: ask Ryan about how to do an ERC20 instead of ERC1155
+        consideration[3] = ConsiderationItem({
+            itemType: ItemType.ERC1155,
+            token: address(weth),
+            identifierOrCriteria: 1,
+            startAmount: 500,
+            endAmount: 500,
+            recipient: payable(CNC_TREASURY)
+        });
 
         CampaignRequirements[] memory requirements = new CampaignRequirements[](
             1
@@ -122,23 +126,21 @@ contract DeployAndConfigure1155Receive is Script, Test {
         certificates.mint(msg.sender, 1, 1); // certificate
         resources.mint(msg.sender, 1, 100); // metal // TODO: shoudl this start at 0 or 1?
         resources.mint(msg.sender, 2, 100); // wood
+        weth.mint(msg.sender, 1, 1200); // weth
 
         certificates.setApprovalForAll(address(ships), true);
         resources.setApprovalForAll(address(ships), true);
-
-        assertEq(certificates.balanceOf(msg.sender, 1), 1);
-        assertEq(resources.balanceOf(msg.sender, 1), 100);
-        assertEq(resources.balanceOf(msg.sender, 2), 100);
+        weth.setApprovalForAll(address(ships), true);
 
         // Verify pre-redeem state
         assertEq(certificates.balanceOf(msg.sender, 1), 1);
-        assertEq(certificates.balanceOf(address(CNC_TREASURY), 1), 0);
+        assertEq(certificates.balanceOf(CNC_TREASURY, 1), 0);
         assertEq(resources.balanceOf(msg.sender, 1), 100);
         assertEq(resources.balanceOf(msg.sender, 2), 100);
-        assertEq(ships.balanceOf(address(CNC_TREASURY)), 0);
+        assertEq(weth.balanceOf(msg.sender, 1), 1200);
+        assertEq(ships.balanceOf(CNC_TREASURY), 0);
 
-        // Call redeem
-        // Let's redeem them!
+        // Let's redeem!
         uint256 campaignId = 1;
         uint256 requirementsIndex = 0;
         bytes32 redemptionHash;
@@ -152,18 +154,28 @@ contract DeployAndConfigure1155Receive is Script, Test {
             signature
         );
 
-        uint256[] memory tokenIds = new uint256[](1);
+        uint256[] memory tokenIds = new uint256[](4);
         tokenIds[0] = 1;
-        // tokenIds[1] = 1;
-        // tokenIds[2] = 2;
+        tokenIds[1] = 1;
+        tokenIds[2] = 2;
+        tokenIds[3] = 1;
 
         ships.redeem(tokenIds, msg.sender, data);
 
         // Verify post-redeem state
         assertEq(certificates.balanceOf(msg.sender, 1), 0);
-        assertEq(certificates.balanceOf(address(CNC_TREASURY), 1), 1);
-        assertEq(resources.balanceOf(msg.sender, 1), 100);
-        assertEq(resources.balanceOf(msg.sender, 2), 100);
+        assertEq(certificates.balanceOf(CNC_TREASURY, 1), 1);
+        assertEq(resources.balanceOf(msg.sender, 1), 0);
+        assertEq(resources.balanceOf(msg.sender, 2), 0);
+        assertEq(resources.balanceOf(CNC_TREASURY, 1), 100);
+        assertEq(resources.balanceOf(CNC_TREASURY, 2), 100);
+        assertEq(weth.balanceOf(msg.sender, 1), 700);
+        assertEq(weth.balanceOf(CNC_TREASURY, 1), 500);
         assertEq(ships.ownerOf(1), msg.sender);
+
+        // Confirm they can't redeem again because they don't have enough ingreidents
+        // TODO: not sure how to do this outside of a test
+        // vm.expectRevert()
+        // ships.redeem(tokenIds, msg.sender, data);
     }
 }
