@@ -281,7 +281,7 @@ contract DeployAndConfigure1155Receive is Script, Test {
         assertEq(certificates.balanceOf(msg.sender, 7), 1);
 
         ships.redeem(tokenIds2, msg.sender, data2);
-        // assertEq(ships.ownerOf(2), msg.sender);
+        assertEq(ships.ownerOf(2), msg.sender);
 
         // Verify post-redeem state
         // // These are requiring viaIR=true in found.toml for reasons I don't understand.
