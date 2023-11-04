@@ -14,7 +14,9 @@ contract ERC1155ShipyardRedeemableOwnerMintableDynamicTraits is
         string memory name_,
         string memory symbol_,
         address[] memory allowedTraitSetters_
-    ) ERC1155ShipyardRedeemableOwnerMintable(name_, symbol_) {}
+    ) ERC1155ShipyardRedeemableOwnerMintable(name_, symbol_) {
+        allowedTraitSetters = allowedTraitSetters_;
+    }
 
     function setTrait(
         uint256 tokenId,
@@ -26,10 +28,10 @@ contract ERC1155ShipyardRedeemableOwnerMintableDynamicTraits is
         //     revert TokenDoesNotExist();
         // }
 
-        // TODO: commenting out
-        // if (!_isPreapprovedTraitSetter(msg.sender)) {
-        //     revert InvalidCaller(msg.sender);
-        // }
+        // TODO: can we make this onlyOwner or something like that?
+        if (!_isPreapprovedTraitSetter(msg.sender)) {
+            revert InvalidCaller(msg.sender);
+        }
 
         DynamicTraits.setTrait(tokenId, traitKey, value);
     }
