@@ -144,18 +144,16 @@ contract DeployAndConfigure1155Receive is Script, Test {
         assertEq(ships.ownerOf(2), msg.sender);
     }
 
-    function setUpBlueprintAndGoldprintCampaigns(
+    function setUpBlueprintCampaign(
         address shipsAddr,
         address certificatesAddr,
         address resourcesAddr,
         address wethAddr
-    ) public {
-        // Creates two campaigns for the ships contract. The first is
-        // for blueprints which consider the certificate, metal, wood, and weth.
-        // The second is considers just the certificate. The offer is always a ship.
-        // DynamicTraits are also checked on the ship and must correspond to blueprint
-        // and goldprint for the respective redeem.
-        //
+    ) public returns (uint256) {
+        // Creates a Blueprint campaigns for the ships contract considers the certificate, metal, wood, and weth.
+        // The offer is a ship
+        // DynamicTraits are also checked on the ship and must correspond to blueprint.
+
         // Offers: What the user receives from the redemption
         // Considerations: what the user inputs to the redemption
         // TraitRedemptions: qualities of the considerations' traits that must be met
@@ -243,18 +241,30 @@ contract DeployAndConfigure1155Receive is Script, Test {
             manager: msg.sender
         });
 
-        uint campaignId1 = ships.createCampaign(
+        uint campaignId = ships.createCampaign(
             params,
             "ipfs://QmQjubc6guHReNW5Es5ZrgDtJRwXk2Aia7BkVoLJGaCRqP"
         );
-        assertEq(campaignId1, 1);
+        assertEq(campaignId, 1);
+        return campaignId;
+    }
 
-        //////////////////////////
-        /// Goldprint Campaign ///
-        //////////////////////////
+    function setUpGoldprintCampaign(
+        address shipsAddr,
+        address certificatesAddr,
+        address resourcesAddr,
+        address wethAddr
+    ) public returns (uint256) {
+        // Setups the goldprint campaign
+        // Considerations:
+        // - certificate with the goldprint dynamic trait
+        // - offer: a ship
+        ERC721ShipyardRedeemableMintable ships = ERC721ShipyardRedeemableMintable(
+                shipsAddr
+            );
 
-        OfferItem[] memory offer2 = new OfferItem[](1);
-        offer2[0] = OfferItem({
+        OfferItem[] memory offer = new OfferItem[](1);
+        offer[0] = OfferItem({
             itemType: ItemType.ERC721_WITH_CRITERIA,
             token: address(ships),
             identifierOrCriteria: 0,
@@ -262,8 +272,8 @@ contract DeployAndConfigure1155Receive is Script, Test {
             endAmount: 1
         });
 
-        ConsiderationItem[] memory consideration2 = new ConsiderationItem[](1);
-        consideration2[0] = ConsiderationItem({
+        ConsiderationItem[] memory consideration = new ConsiderationItem[](1);
+        consideration[0] = ConsiderationItem({
             itemType: ItemType.ERC1155_WITH_CRITERIA,
             token: address(certificatesAddr),
             identifierOrCriteria: 0,
@@ -272,11 +282,11 @@ contract DeployAndConfigure1155Receive is Script, Test {
             recipient: payable(BURN_ADDRESS) // TODO: the burn is failing and it's transferring to the burn address
         });
 
-        TraitRedemption[] memory traitRedemptions2 = new TraitRedemption[](1);
+        TraitRedemption[] memory traitRedemptions = new TraitRedemption[](1);
         // TODO: can make this does not need to update the trait
         // Right now permissions are commented out in the contract so should work
         // https://github.com/ethereum/ERCs/blob/db0ccb98c7e8c8fd9043d3b4b5fcf1827ef92cec/ERCS/erc-7498.md#metadata-uri
-        traitRedemptions2[0] = TraitRedemption({
+        traitRedemptions[0] = TraitRedemption({
             substandard: 4, // an indicator integer
             token: address(certificatesAddr),
             traitKey: traitKey,
@@ -285,13 +295,14 @@ contract DeployAndConfigure1155Receive is Script, Test {
         });
 
         // Create the second campaign for goldprint
-        CampaignRequirements[]
-            memory requirements2 = new CampaignRequirements[](1);
-        requirements2[0].offer = offer2;
-        requirements2[0].consideration = consideration2;
-        requirements2[0].traitRedemptions = traitRedemptions2;
-        CampaignParams memory params2 = CampaignParams({
-            requirements: requirements2,
+        CampaignRequirements[] memory requirements = new CampaignRequirements[](
+            1
+        );
+        requirements[0].offer = offer;
+        requirements[0].consideration = consideration;
+        requirements[0].traitRedemptions = traitRedemptions;
+        CampaignParams memory params = CampaignParams({
+            requirements: requirements,
             signer: address(0),
             startTime: campaignStartTime,
             endTime: campaignEndTime,
@@ -299,13 +310,13 @@ contract DeployAndConfigure1155Receive is Script, Test {
             manager: msg.sender
         });
 
-        // uint campaignId2 = ERC721ShipyardRedeemableMintable(ships)
-        uint campaignId2 = ships.createCampaign(
-            params2,
+        uint campaignId = ships.createCampaign(
+            params,
             "ipfs://QmQjubc6guHReNW5Es5ZrgDtJRwXk2Aia7BkVoLJGaCRqP"
         );
 
-        assertEq(campaignId2, 2);
+        assertEq(campaignId, 2);
+        return campaignId;
     }
 
     function run() external {
@@ -335,7 +346,14 @@ contract DeployAndConfigure1155Receive is Script, Test {
                 "SHIPS"
             );
 
-        setUpBlueprintAndGoldprintCampaigns(
+        uint256 blueprintCampaignId = setUpBlueprintCampaign(
+            address(ships),
+            address(certificates),
+            address(resources),
+            address(weth)
+        );
+
+        uint256 goldprintCampaignId = setUpGoldprintCampaign(
             address(ships),
             address(certificates),
             address(resources),
