@@ -9,6 +9,7 @@ import {CampaignParams, CampaignRequirements, TraitRedemption} from "../src/lib/
 import {BURN_ADDRESS} from "../src/lib/RedeemablesConstants.sol";
 import {ERC721RedemptionMintable} from "../src/extensions/ERC721RedemptionMintable.sol";
 import {ERC721OwnerMintable} from "../src/test/ERC721OwnerMintable.sol";
+import {TestERC20} from "../test/utils/mocks/TestERC20.sol";
 
 // import {ERC1155ShipyardRedeemableMintable} from "../src/extensions/ERC1155ShipyardRedeemableMintable.sol";
 import {ERC721ShipyardRedeemableMintable} from "../src/extensions/ERC721ShipyardRedeemableMintable.sol";
@@ -27,12 +28,20 @@ contract DeployAndConfigure1155Receive is Script, Test {
     uint32 campaignEndTime = 2000000000; // seconds since epoch
     uint32 maxCampaignRedemptions = 1_000_000_000;
 
+    function getWethAddr() public returns (address) {
+        TestERC20 weth2 = new TestERC20();
+        return address(weth2);
+    }
+
     function mintAndTest(
         address shipsAddr,
         address certificatesAddr,
         address resourcesAddr,
         address wethAddr
     ) public {
+        // This mints tokens to msg.sender and tests calling redeem
+        // Right now, it redeems a blueprint and then a goldprint
+
         ERC721ShipyardRedeemableMintable ships = ERC721ShipyardRedeemableMintable(
                 shipsAddr
             );
@@ -43,19 +52,17 @@ contract DeployAndConfigure1155Receive is Script, Test {
                 resourcesAddr
             );
 
-        ERC1155ShipyardRedeemableOwnerMintable weth = ERC1155ShipyardRedeemableOwnerMintable(
-                wethAddr
-            );
+        TestERC20 weth = TestERC20(wethAddr);
 
         // Mint some tokens for the redeem ingredients
         certificates.mint(msg.sender, 1, 1); // certificate
         resources.mint(msg.sender, 1, 100); // metal
         resources.mint(msg.sender, 2, 100); // wood
-        weth.mint(msg.sender, 1, 1200); // weth
+        weth.mint(msg.sender, 1200); // weth
 
         certificates.setApprovalForAll(address(ships), true);
         resources.setApprovalForAll(address(ships), true);
-        weth.setApprovalForAll(address(ships), true);
+        weth.approve(address(ships), 99999999);
 
         // Set traits
         certificates.setTrait(1, traitKey, traitValueBlueprint);
@@ -65,7 +72,7 @@ contract DeployAndConfigure1155Receive is Script, Test {
         assertEq(certificates.balanceOf(CNC_TREASURY, 1), 0);
         assertEq(resources.balanceOf(msg.sender, 1), 100);
         assertEq(resources.balanceOf(msg.sender, 2), 100);
-        assertEq(weth.balanceOf(msg.sender, 1), 1200);
+        assertEq(weth.balanceOf(msg.sender), 1200);
         assertEq(ships.balanceOf(CNC_TREASURY), 0);
 
         // Let's redeem!
@@ -95,8 +102,8 @@ contract DeployAndConfigure1155Receive is Script, Test {
 
         // Verify post-redeem state
         assertEq(ships.ownerOf(1), msg.sender);
-        assertEq(weth.balanceOf(msg.sender, 1), 700);
-        assertEq(weth.balanceOf(CNC_TREASURY, 1), 500);
+        assertEq(weth.balanceOf(msg.sender), 700);
+        assertEq(weth.balanceOf(CNC_TREASURY), 500);
 
         // These are requiring viaIR=true in found.toml for reasons I don't understand.
         assertEq(certificates.balanceOf(msg.sender, 1), 0);
@@ -199,9 +206,9 @@ contract DeployAndConfigure1155Receive is Script, Test {
 
         // TODO: ask Ryan about how to do an ERC20 instead of ERC1155
         consideration[3] = ConsiderationItem({
-            itemType: ItemType.ERC1155,
-            token: address(wethAddr),
-            identifierOrCriteria: 1,
+            itemType: ItemType.ERC20, // TODO: here
+            token: wethAddr,
+            identifierOrCriteria: 0,
             startAmount: 500,
             endAmount: 500,
             recipient: payable(CNC_TREASURY)
@@ -320,11 +327,8 @@ contract DeployAndConfigure1155Receive is Script, Test {
                 "RSRCS"
             );
 
-        // TODO: using ERC1155 as placeholder for WETH
-        ERC1155ShipyardRedeemableOwnerMintable weth = new ERC1155ShipyardRedeemableOwnerMintable(
-                "Wrapped ETH",
-                "WETH"
-            );
+        address wethAddr = getWethAddr();
+        TestERC20 weth = TestERC20(wethAddr);
 
         ERC721ShipyardRedeemableMintable ships = new ERC721ShipyardRedeemableMintable(
                 "Ships",
