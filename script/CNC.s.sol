@@ -23,6 +23,173 @@ contract DeployAndConfigure1155Receive is Script, Test {
     bytes32 traitKey = bytes32("certType");
     bytes32 traitValueBlueprint = bytes32(uint256(1));
     bytes32 traitValueGoldprint = bytes32(uint256(2));
+    uint32 campaignStartTime = 0; //  seconds since epoch
+    uint32 campaignEndTime = 2000000000; // seconds since epoch
+    uint32 maxCampaignRedemptions = 1_000_000_000;
+
+    function setUpBlueprintAndGoldprintCampaigns(
+        address shipsAddr,
+        address certificatesAddr,
+        address resourcesAddr,
+        address wethAddr
+    ) public {
+        // Creates two campaigns for the ships contract. The first is
+        // for blueprints which consider the certificate, metal, wood, and weth.
+        // The second is considers just the certificate. The offer is always a ship.
+        // DynamicTraits are also checked on the ship and must correspond to blueprint
+        // and goldprint for the respective redeem.
+        //
+        // Offers: What the user receives from the redemption
+        // Considerations: what the user inputs to the redemption
+        // TraitRedemptions: qualities of the considerations' traits that must be met
+
+        ERC721ShipyardRedeemableMintable ships = ERC721ShipyardRedeemableMintable(
+                shipsAddr
+            );
+
+        //////////////////////////
+        /// Blueprint Campaign ///
+        //////////////////////////
+        OfferItem[] memory offer = new OfferItem[](1);
+        offer[0] = OfferItem({
+            itemType: ItemType.ERC721_WITH_CRITERIA,
+            token: address(ships),
+            identifierOrCriteria: 0,
+            startAmount: 1,
+            endAmount: 1
+        });
+
+        ConsiderationItem[] memory consideration = new ConsiderationItem[](4);
+        consideration[0] = ConsiderationItem({
+            itemType: ItemType.ERC1155_WITH_CRITERIA,
+            token: address(certificatesAddr),
+            identifierOrCriteria: 0,
+            startAmount: 1,
+            endAmount: 1,
+            recipient: payable(BURN_ADDRESS) // TODO: the burn is failing and it's transferring to the burn address
+        });
+
+        consideration[1] = ConsiderationItem({
+            itemType: ItemType.ERC1155,
+            token: address(resourcesAddr),
+            identifierOrCriteria: 1,
+            startAmount: 100,
+            endAmount: 100,
+            recipient: payable(CNC_TREASURY)
+        });
+
+        consideration[2] = ConsiderationItem({
+            itemType: ItemType.ERC1155,
+            token: address(resourcesAddr),
+            identifierOrCriteria: 2,
+            startAmount: 100,
+            endAmount: 100,
+            recipient: payable(CNC_TREASURY)
+        });
+
+        // TODO: ask Ryan about how to do an ERC20 instead of ERC1155
+        consideration[3] = ConsiderationItem({
+            itemType: ItemType.ERC1155,
+            token: address(wethAddr),
+            identifierOrCriteria: 1,
+            startAmount: 500,
+            endAmount: 500,
+            recipient: payable(CNC_TREASURY)
+        });
+
+        // TODO: can make this does not need to update the trait
+        // Right now permissions are commented out in the contract so should work
+        // https://github.com/ethereum/ERCs/blob/db0ccb98c7e8c8fd9043d3b4b5fcf1827ef92cec/ERCS/erc-7498.md#metadata-uri
+        TraitRedemption[] memory traitRedemptions = new TraitRedemption[](1);
+        traitRedemptions[0] = TraitRedemption({
+            substandard: 4, // an indicator integer
+            token: address(certificatesAddr),
+            traitKey: traitKey,
+            traitValue: traitValueBlueprint, // new trait value
+            substandardValue: traitValueBlueprint // required previous value
+        });
+
+        // Create the first campaign for blueprints
+        CampaignRequirements[] memory requirements = new CampaignRequirements[](
+            1
+        );
+        requirements[0].offer = offer;
+        requirements[0].consideration = consideration;
+        requirements[0].traitRedemptions = traitRedemptions;
+
+        CampaignParams memory params = CampaignParams({
+            requirements: requirements,
+            signer: address(0),
+            startTime: campaignStartTime,
+            endTime: campaignEndTime,
+            maxCampaignRedemptions: maxCampaignRedemptions,
+            manager: msg.sender
+        });
+
+        uint campaignId1 = ships.createCampaign(
+            params,
+            "ipfs://QmQjubc6guHReNW5Es5ZrgDtJRwXk2Aia7BkVoLJGaCRqP"
+        );
+        assertEq(campaignId1, 1);
+
+        //////////////////////////
+        /// Goldprint Campaign ///
+        //////////////////////////
+
+        OfferItem[] memory offer2 = new OfferItem[](1);
+        offer2[0] = OfferItem({
+            itemType: ItemType.ERC721_WITH_CRITERIA,
+            token: address(ships),
+            identifierOrCriteria: 0,
+            startAmount: 1,
+            endAmount: 1
+        });
+
+        ConsiderationItem[] memory consideration2 = new ConsiderationItem[](1);
+        consideration2[0] = ConsiderationItem({
+            itemType: ItemType.ERC1155_WITH_CRITERIA,
+            token: address(certificatesAddr),
+            identifierOrCriteria: 0,
+            startAmount: 1,
+            endAmount: 1,
+            recipient: payable(BURN_ADDRESS) // TODO: the burn is failing and it's transferring to the burn address
+        });
+
+        TraitRedemption[] memory traitRedemptions2 = new TraitRedemption[](1);
+        // TODO: can make this does not need to update the trait
+        // Right now permissions are commented out in the contract so should work
+        // https://github.com/ethereum/ERCs/blob/db0ccb98c7e8c8fd9043d3b4b5fcf1827ef92cec/ERCS/erc-7498.md#metadata-uri
+        traitRedemptions2[0] = TraitRedemption({
+            substandard: 4, // an indicator integer
+            token: address(certificatesAddr),
+            traitKey: traitKey,
+            traitValue: traitValueGoldprint, // new trait value
+            substandardValue: traitValueGoldprint // required previous value
+        });
+
+        // Create the second campaign for goldprint
+        CampaignRequirements[]
+            memory requirements2 = new CampaignRequirements[](1);
+        requirements2[0].offer = offer2;
+        requirements2[0].consideration = consideration2;
+        requirements2[0].traitRedemptions = traitRedemptions2;
+        CampaignParams memory params2 = CampaignParams({
+            requirements: requirements2,
+            signer: address(0),
+            startTime: campaignStartTime,
+            endTime: campaignEndTime,
+            maxCampaignRedemptions: maxCampaignRedemptions,
+            manager: msg.sender
+        });
+
+        // uint campaignId2 = ERC721ShipyardRedeemableMintable(ships)
+        uint campaignId2 = ships.createCampaign(
+            params2,
+            "ipfs://QmQjubc6guHReNW5Es5ZrgDtJRwXk2Aia7BkVoLJGaCRqP"
+        );
+
+        assertEq(campaignId2, 2);
+    }
 
     function run() external {
         vm.startBroadcast();
@@ -31,6 +198,7 @@ contract DeployAndConfigure1155Receive is Script, Test {
         allowedTraitSetters[0] = msg.sender;
 
         // make the tokens
+        // TODO: traits might already be set on here. See ERC721ShipyardRedeemable.sol
         ERC1155ShipyardRedeemableOwnerMintableDynamicTraits certificates = new ERC1155ShipyardRedeemableOwnerMintableDynamicTraits(
                 "Certificates",
                 "CERTS",
@@ -53,152 +221,12 @@ contract DeployAndConfigure1155Receive is Script, Test {
                 "SHIPS"
             );
 
-        // Configure campaign 1 for the ships: the blueprint campaign
-
-        // Configure the offers. These are the what the user receives from the redemption
-        OfferItem[] memory offer = new OfferItem[](1);
-        offer[0] = OfferItem({
-            itemType: ItemType.ERC721_WITH_CRITERIA,
-            token: address(ships),
-            identifierOrCriteria: 0,
-            startAmount: 1,
-            endAmount: 1
-        });
-
-        // Configure the considerations. These are the inputs to the redeem,
-        // the things the user should must have in order to recieve the offer items
-        ConsiderationItem[] memory consideration = new ConsiderationItem[](4);
-        consideration[0] = ConsiderationItem({
-            itemType: ItemType.ERC1155_WITH_CRITERIA,
-            token: address(certificates),
-            identifierOrCriteria: 0,
-            startAmount: 1,
-            endAmount: 1,
-            recipient: payable(CNC_TREASURY) // TODO: burn address here was failing
-        });
-        consideration[1] = ConsiderationItem({
-            itemType: ItemType.ERC1155,
-            token: address(resources),
-            identifierOrCriteria: 1,
-            startAmount: 100,
-            endAmount: 100,
-            recipient: payable(CNC_TREASURY)
-        });
-        consideration[2] = ConsiderationItem({
-            itemType: ItemType.ERC1155,
-            token: address(resources),
-            identifierOrCriteria: 2,
-            startAmount: 100,
-            endAmount: 100,
-            recipient: payable(CNC_TREASURY)
-        });
-        // TODO: ask Ryan about how to do an ERC20 instead of ERC1155
-        consideration[3] = ConsiderationItem({
-            itemType: ItemType.ERC1155,
-            token: address(weth),
-            identifierOrCriteria: 1,
-            startAmount: 500,
-            endAmount: 500,
-            recipient: payable(CNC_TREASURY)
-        });
-
-        TraitRedemption[] memory traitRedemptions = new TraitRedemption[](1);
-        // TODO: can make this does not need to update the trait
-        // Right now permissions are commented out in the contract so should work
-        // https://github.com/ethereum/ERCs/blob/db0ccb98c7e8c8fd9043d3b4b5fcf1827ef92cec/ERCS/erc-7498.md#metadata-uri
-        traitRedemptions[0] = TraitRedemption({
-            substandard: 4, // an indicator integer
-            token: address(certificates),
-            traitKey: traitKey,
-            traitValue: traitValueBlueprint, // new trait value
-            substandardValue: traitValueBlueprint // required previous value
-        });
-
-        // Configure campaignRequements 2: goldprint
-        // Offers
-        OfferItem[] memory offer2 = new OfferItem[](1);
-        offer2[0] = OfferItem({
-            itemType: ItemType.ERC721_WITH_CRITERIA,
-            token: address(ships),
-            identifierOrCriteria: 0,
-            startAmount: 1,
-            endAmount: 1
-        });
-
-        // Considerations
-        ConsiderationItem[] memory consideration2 = new ConsiderationItem[](1);
-        consideration2[0] = ConsiderationItem({
-            itemType: ItemType.ERC1155_WITH_CRITERIA,
-            token: address(certificates),
-            identifierOrCriteria: 0,
-            startAmount: 1,
-            endAmount: 1,
-            recipient: payable(CNC_TREASURY) // TODO: burn address here was failing
-        });
-
-        TraitRedemption[] memory traitRedemptions2 = new TraitRedemption[](1);
-        // TODO: can make this does not need to update the trait
-        // Right now permissions are commented out in the contract so should work
-        // https://github.com/ethereum/ERCs/blob/db0ccb98c7e8c8fd9043d3b4b5fcf1827ef92cec/ERCS/erc-7498.md#metadata-uri
-        traitRedemptions2[0] = TraitRedemption({
-            substandard: 4, // an indicator integer
-            token: address(certificates),
-            traitKey: traitKey,
-            traitValue: traitValueGoldprint, // new trait value
-            substandardValue: traitValueGoldprint // required previous value
-        });
-
-        // Create the first campaign for blueprints
-        CampaignRequirements[] memory requirements = new CampaignRequirements[](
-            1
+        setUpBlueprintAndGoldprintCampaigns(
+            address(ships),
+            address(certificates),
+            address(resources),
+            address(weth)
         );
-        requirements[0].offer = offer;
-        requirements[0].consideration = consideration;
-        requirements[0].traitRedemptions = traitRedemptions;
-
-        CampaignParams memory params = CampaignParams({
-            requirements: requirements,
-            signer: address(0),
-            startTime: 0,
-            endTime: 0,
-            maxCampaignRedemptions: 1_000,
-            manager: msg.sender
-        });
-
-        uint campaignId1 = ships.createCampaign(
-            params,
-            "ipfs://QmQjubc6guHReNW5Es5ZrgDtJRwXk2Aia7BkVoLJGaCRqP"
-        );
-
-        // Create the second campaign for goldprint
-        CampaignRequirements[]
-            memory requirements2 = new CampaignRequirements[](1);
-        requirements2[0].offer = offer2;
-        requirements2[0].consideration = consideration2;
-        requirements2[0].traitRedemptions = traitRedemptions2;
-        CampaignParams memory params2 = CampaignParams({
-            requirements: requirements2,
-            signer: address(0),
-            startTime: 0,
-            endTime: 0,
-            maxCampaignRedemptions: 1_000,
-            manager: msg.sender
-        });
-        uint campaignId2 = ships.createCampaign(
-            params2,
-            "ipfs://QmQjubc6guHReNW5Es5ZrgDtJRwXk2Aia7BkVoLJGaCRqP"
-        );
-
-        assertEq(campaignId1, 2);
-        assertEq(campaignId2, 2);
-
-        // To test updateCampaign, update to proper start/end times.
-        params.startTime = uint32(block.timestamp);
-        params.endTime = uint32(block.timestamp + 1_000_000);
-        ships.updateCampaign(1, params, "");
-        params2.startTime = uint32(block.timestamp);
-        params2.endTime = uint32(block.timestamp + 1_000_000);
-        ships.updateCampaign(2, params2, "");
 
         // Mint some tokens for the redeem ingredients
         certificates.mint(msg.sender, 1, 1); // certificate
@@ -253,7 +281,7 @@ contract DeployAndConfigure1155Receive is Script, Test {
 
         // These are requiring viaIR=true in found.toml for reasons I don't understand.
         assertEq(certificates.balanceOf(msg.sender, 1), 0);
-        assertEq(certificates.balanceOf(CNC_TREASURY, 1), 1);
+        assertEq(certificates.balanceOf(CNC_TREASURY, 1), 0);
         assertEq(resources.balanceOf(msg.sender, 1), 0);
         assertEq(resources.balanceOf(msg.sender, 2), 0);
         assertEq(resources.balanceOf(CNC_TREASURY, 1), 100);
@@ -284,13 +312,10 @@ contract DeployAndConfigure1155Receive is Script, Test {
         assertEq(ships.ownerOf(2), msg.sender);
 
         // Verify post-redeem state
-        // // These are requiring viaIR=true in found.toml for reasons I don't understand.
-        // assertEq(certificates.balanceOf(msg.sender, 1), 0);
-        // assertEq(certificates.balanceOf(CNC_TREASURY, 1), 1);
-        // assertEq(resources.balanceOf(msg.sender, 1), 0);
-        // assertEq(resources.balanceOf(msg.sender, 2), 0);
-        // assertEq(resources.balanceOf(CNC_TREASURY, 1), 100);
-        // assertEq(resources.balanceOf(CNC_TREASURY, 2), 100);
+        // These are requiring viaIR=true in found.toml for reasons I don't understand.
+        assertEq(certificates.balanceOf(msg.sender, 7), 0);
+        assertEq(certificates.balanceOf(CNC_TREASURY, 7), 0);
+        assertEq(ships.ownerOf(2), msg.sender);
 
         // Confirm they can't redeem again because they don't have enough ingreidents
         // TODO: not sure how to do this outside of a test
