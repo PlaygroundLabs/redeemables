@@ -27,6 +27,116 @@ contract DeployAndConfigure1155Receive is Script, Test {
     uint32 campaignEndTime = 2000000000; // seconds since epoch
     uint32 maxCampaignRedemptions = 1_000_000_000;
 
+    function mintAndTest(
+        address shipsAddr,
+        address certificatesAddr,
+        address resourcesAddr,
+        address wethAddr
+    ) public {
+        ERC721ShipyardRedeemableMintable ships = ERC721ShipyardRedeemableMintable(
+                shipsAddr
+            );
+        ERC1155ShipyardRedeemableOwnerMintableDynamicTraits certificates = ERC1155ShipyardRedeemableOwnerMintableDynamicTraits(
+                certificatesAddr
+            );
+        ERC1155ShipyardRedeemableOwnerMintable resources = ERC1155ShipyardRedeemableOwnerMintable(
+                resourcesAddr
+            );
+
+        ERC1155ShipyardRedeemableOwnerMintable weth = ERC1155ShipyardRedeemableOwnerMintable(
+                wethAddr
+            );
+
+        // Mint some tokens for the redeem ingredients
+        certificates.mint(msg.sender, 1, 1); // certificate
+        resources.mint(msg.sender, 1, 100); // metal
+        resources.mint(msg.sender, 2, 100); // wood
+        weth.mint(msg.sender, 1, 1200); // weth
+
+        certificates.setApprovalForAll(address(ships), true);
+        resources.setApprovalForAll(address(ships), true);
+        weth.setApprovalForAll(address(ships), true);
+
+        // Set traits
+        certificates.setTrait(1, traitKey, traitValueBlueprint);
+
+        // Verify pre-redeem state
+        assertEq(certificates.balanceOf(msg.sender, 1), 1);
+        assertEq(certificates.balanceOf(CNC_TREASURY, 1), 0);
+        assertEq(resources.balanceOf(msg.sender, 1), 100);
+        assertEq(resources.balanceOf(msg.sender, 2), 100);
+        assertEq(weth.balanceOf(msg.sender, 1), 1200);
+        assertEq(ships.balanceOf(CNC_TREASURY), 0);
+
+        // Let's redeem!
+        uint256 campaignId = 1;
+        uint256 requirementsIndex = 0;
+        bytes32 redemptionHash;
+        uint256[] memory traitRedemptionTokenIds = new uint256[](1);
+        traitRedemptionTokenIds[0] = 1;
+        uint256 salt;
+        bytes memory signature;
+        bytes memory data = abi.encode(
+            campaignId,
+            requirementsIndex,
+            redemptionHash,
+            traitRedemptionTokenIds,
+            salt,
+            signature
+        );
+
+        uint256[] memory tokenIds = new uint256[](4);
+        tokenIds[0] = 1;
+        tokenIds[1] = 1;
+        tokenIds[2] = 2;
+        tokenIds[3] = 1;
+
+        ships.redeem(tokenIds, msg.sender, data);
+
+        // Verify post-redeem state
+        assertEq(ships.ownerOf(1), msg.sender);
+        assertEq(weth.balanceOf(msg.sender, 1), 700);
+        assertEq(weth.balanceOf(CNC_TREASURY, 1), 500);
+
+        // These are requiring viaIR=true in found.toml for reasons I don't understand.
+        assertEq(certificates.balanceOf(msg.sender, 1), 0);
+        assertEq(certificates.balanceOf(CNC_TREASURY, 1), 0);
+        assertEq(resources.balanceOf(msg.sender, 1), 0);
+        assertEq(resources.balanceOf(msg.sender, 2), 0);
+        assertEq(resources.balanceOf(CNC_TREASURY, 1), 100);
+        assertEq(resources.balanceOf(CNC_TREASURY, 2), 100);
+
+        // Mint tokens for the goldprint campaign
+        certificates.mint(msg.sender, 7, 1); // certificate
+        certificates.setTrait(7, traitKey, traitValueGoldprint);
+        assertEq(certificates.getTraitValue(7, traitKey), traitValueGoldprint);
+
+        uint256[] memory traitRedemptionTokenIds2 = new uint256[](1);
+        traitRedemptionTokenIds2[0] = 7;
+        bytes memory data2 = abi.encode(
+            2, // campaing id. I think this isn't being picked up by redeem
+            requirementsIndex, // 0 because only one requirements
+            redemptionHash,
+            traitRedemptionTokenIds2,
+            salt,
+            signature
+        );
+
+        uint256[] memory tokenIds2 = new uint256[](1);
+        tokenIds2[0] = 7;
+
+        assertEq(certificates.balanceOf(msg.sender, 7), 1);
+
+        ships.redeem(tokenIds2, msg.sender, data2);
+        assertEq(ships.ownerOf(2), msg.sender);
+
+        // Verify post-redeem state
+        // These are requiring viaIR=true in found.toml for reasons I don't understand.
+        assertEq(certificates.balanceOf(msg.sender, 7), 0);
+        assertEq(certificates.balanceOf(CNC_TREASURY, 7), 0);
+        assertEq(ships.ownerOf(2), msg.sender);
+    }
+
     function setUpBlueprintAndGoldprintCampaigns(
         address shipsAddr,
         address certificatesAddr,
@@ -228,98 +338,11 @@ contract DeployAndConfigure1155Receive is Script, Test {
             address(weth)
         );
 
-        // Mint some tokens for the redeem ingredients
-        certificates.mint(msg.sender, 1, 1); // certificate
-        resources.mint(msg.sender, 1, 100); // metal
-        resources.mint(msg.sender, 2, 100); // wood
-        weth.mint(msg.sender, 1, 1200); // weth
-
-        certificates.setApprovalForAll(address(ships), true);
-        resources.setApprovalForAll(address(ships), true);
-        weth.setApprovalForAll(address(ships), true);
-
-        // Set traits
-        certificates.setTrait(1, traitKey, traitValueBlueprint);
-
-        // Verify pre-redeem state
-        assertEq(certificates.balanceOf(msg.sender, 1), 1);
-        assertEq(certificates.balanceOf(CNC_TREASURY, 1), 0);
-        assertEq(resources.balanceOf(msg.sender, 1), 100);
-        assertEq(resources.balanceOf(msg.sender, 2), 100);
-        assertEq(weth.balanceOf(msg.sender, 1), 1200);
-        assertEq(ships.balanceOf(CNC_TREASURY), 0);
-
-        // Let's redeem!
-        uint256 campaignId = 1;
-        uint256 requirementsIndex = 0;
-        bytes32 redemptionHash;
-        uint256[] memory traitRedemptionTokenIds = new uint256[](1);
-        traitRedemptionTokenIds[0] = 1;
-        uint256 salt;
-        bytes memory signature;
-        bytes memory data = abi.encode(
-            campaignId,
-            requirementsIndex,
-            redemptionHash,
-            traitRedemptionTokenIds,
-            salt,
-            signature
+        mintAndTest(
+            address(ships),
+            address(certificates),
+            address(resources),
+            address(weth)
         );
-
-        uint256[] memory tokenIds = new uint256[](4);
-        tokenIds[0] = 1;
-        tokenIds[1] = 1;
-        tokenIds[2] = 2;
-        tokenIds[3] = 1;
-
-        ships.redeem(tokenIds, msg.sender, data);
-
-        // Verify post-redeem state
-        assertEq(ships.ownerOf(1), msg.sender);
-        assertEq(weth.balanceOf(msg.sender, 1), 700);
-        assertEq(weth.balanceOf(CNC_TREASURY, 1), 500);
-
-        // These are requiring viaIR=true in found.toml for reasons I don't understand.
-        assertEq(certificates.balanceOf(msg.sender, 1), 0);
-        assertEq(certificates.balanceOf(CNC_TREASURY, 1), 0);
-        assertEq(resources.balanceOf(msg.sender, 1), 0);
-        assertEq(resources.balanceOf(msg.sender, 2), 0);
-        assertEq(resources.balanceOf(CNC_TREASURY, 1), 100);
-        assertEq(resources.balanceOf(CNC_TREASURY, 2), 100);
-
-        // Mint tokens for the goldprint campaign
-        certificates.mint(msg.sender, 7, 1); // certificate
-        certificates.setTrait(7, traitKey, traitValueGoldprint);
-        assertEq(certificates.getTraitValue(7, traitKey), traitValueGoldprint);
-
-        uint256[] memory traitRedemptionTokenIds2 = new uint256[](1);
-        traitRedemptionTokenIds2[0] = 7;
-        bytes memory data2 = abi.encode(
-            2, // campaing id. I think this isn't being picked up by redeem
-            requirementsIndex, // 0 because only one requirements
-            redemptionHash,
-            traitRedemptionTokenIds2,
-            salt,
-            signature
-        );
-
-        uint256[] memory tokenIds2 = new uint256[](1);
-        tokenIds2[0] = 7;
-
-        assertEq(certificates.balanceOf(msg.sender, 7), 1);
-
-        ships.redeem(tokenIds2, msg.sender, data2);
-        assertEq(ships.ownerOf(2), msg.sender);
-
-        // Verify post-redeem state
-        // These are requiring viaIR=true in found.toml for reasons I don't understand.
-        assertEq(certificates.balanceOf(msg.sender, 7), 0);
-        assertEq(certificates.balanceOf(CNC_TREASURY, 7), 0);
-        assertEq(ships.ownerOf(2), msg.sender);
-
-        // Confirm they can't redeem again because they don't have enough ingreidents
-        // TODO: not sure how to do this outside of a test
-        // vm.expectRevert()
-        // ships.redeem(tokenIds, msg.sender, data);
     }
 }
