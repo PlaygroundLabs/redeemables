@@ -17,7 +17,6 @@ import {ERC721ShipyardRedeemableMintable} from "../src/extensions/ERC721Shipyard
 import {ERC721RedemptionMintable} from "../src/extensions/ERC721RedemptionMintable.sol";
 import {ERC721ShipyardRedeemableOwnerMintable} from "../src/test/ERC721ShipyardRedeemableOwnerMintable.sol";
 import {ERC1155ShipyardRedeemableOwnerMintable} from "../src/test/ERC1155ShipyardRedeemableOwnerMintable.sol";
-import {ERC1155ShipyardRedeemableOwnerMintableDynamicTraits} from "../src/test/ERC1155ShipyardRedeemableOwnerMintableDynamicTraits.sol";
 
 contract DeployAndConfigure1155Receive is Script, Test {
     address CNC_TREASURY = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1;
@@ -27,11 +26,6 @@ contract DeployAndConfigure1155Receive is Script, Test {
     uint32 campaignStartTime = 0; //  seconds since epoch
     uint32 campaignEndTime = 2000000000; // seconds since epoch
     uint32 maxCampaignRedemptions = 1_000_000_000;
-
-    function getWethAddr() public returns (address) {
-        TestERC20 weth2 = new TestERC20();
-        return address(weth2);
-    }
 
     function mintAndTest(
         address shipsAddr,
@@ -45,7 +39,7 @@ contract DeployAndConfigure1155Receive is Script, Test {
         ERC721ShipyardRedeemableMintable ships = ERC721ShipyardRedeemableMintable(
                 shipsAddr
             );
-        ERC1155ShipyardRedeemableOwnerMintableDynamicTraits certificates = ERC1155ShipyardRedeemableOwnerMintableDynamicTraits(
+        ERC1155ShipyardRedeemableOwnerMintable certificates = ERC1155ShipyardRedeemableOwnerMintable(
                 certificatesAddr
             );
         ERC1155ShipyardRedeemableOwnerMintable resources = ERC1155ShipyardRedeemableOwnerMintable(
@@ -56,8 +50,8 @@ contract DeployAndConfigure1155Receive is Script, Test {
 
         // Mint some tokens for the redeem ingredients
         certificates.mint(msg.sender, 1, 1); // certificate
-        resources.mint(msg.sender, 1, 100); // metal
-        resources.mint(msg.sender, 2, 100); // wood
+        resources.mint(msg.sender, 1, 100); // ore
+        resources.mint(msg.sender, 2, 100); // lumber
         weth.mint(msg.sender, 1200); // weth
 
         certificates.setApprovalForAll(address(ships), true);
@@ -123,7 +117,7 @@ contract DeployAndConfigure1155Receive is Script, Test {
         bytes memory data2 = abi.encode(
             2, // campaing id. I think this isn't being picked up by redeem
             requirementsIndex, // 0 because only one requirements
-            redemptionHash,
+            0x0,
             traitRedemptionTokenIds2,
             salt,
             signature
@@ -144,13 +138,40 @@ contract DeployAndConfigure1155Receive is Script, Test {
         assertEq(ships.ownerOf(2), msg.sender);
     }
 
+    function doARedeem(address shipsAddr, uint256 tokenToRedeem) public {
+        // This was a helper function for testing a redeem
+        // on arb1 to already deployed contracts
+        // This was specificaly used for a goldprint
+
+        uint256[] memory traitRedemptionTokenIds = new uint256[](1);
+        traitRedemptionTokenIds[0] = 1;
+
+        bytes memory data = abi.encode(
+            2,
+            0,
+            0x0,
+            traitRedemptionTokenIds,
+            0x0,
+            0x0
+        );
+
+        uint256[] memory tokenIds = new uint256[](1);
+        tokenIds[0] = tokenToRedeem;
+
+        ERC721ShipyardRedeemableMintable(shipsAddr).redeem(
+            tokenIds,
+            msg.sender,
+            data
+        );
+    }
+
     function setUpBlueprintCampaign(
         address shipsAddr,
         address certificatesAddr,
         address resourcesAddr,
         address wethAddr
     ) public returns (uint256) {
-        // Creates a Blueprint campaigns for the ships contract considers the certificate, metal, wood, and weth.
+        // Creates a Blueprint campaigns for the ships contract considers the certificate, ore, lumber, and weth.
         // The offer is a ship
         // DynamicTraits are also checked on the ship and must correspond to blueprint.
 
@@ -322,15 +343,10 @@ contract DeployAndConfigure1155Receive is Script, Test {
     function run() external {
         vm.startBroadcast();
 
-        address[] memory allowedTraitSetters = new address[](1);
-        allowedTraitSetters[0] = msg.sender;
-
         // make the tokens
-        // TODO: traits might already be set on here. See ERC721ShipyardRedeemable.sol
-        ERC1155ShipyardRedeemableOwnerMintableDynamicTraits certificates = new ERC1155ShipyardRedeemableOwnerMintableDynamicTraits(
+        ERC1155ShipyardRedeemableOwnerMintable certificates = new ERC1155ShipyardRedeemableOwnerMintable(
                 "Certificates",
-                "CERTS",
-                allowedTraitSetters
+                "CERTS"
             );
 
         ERC1155ShipyardRedeemableOwnerMintable resources = new ERC1155ShipyardRedeemableOwnerMintable(
@@ -338,26 +354,35 @@ contract DeployAndConfigure1155Receive is Script, Test {
                 "RSRCS"
             );
 
-        address wethAddr = getWethAddr();
-        TestERC20 weth = TestERC20(wethAddr);
+        TestERC20 weth = new TestERC20();
 
         ERC721ShipyardRedeemableMintable ships = new ERC721ShipyardRedeemableMintable(
                 "Ships",
                 "SHIPS"
             );
 
+        // address shipsAddr = 0x343f8F27f060E8C38acd759b103D7f1FE9f035Bc;
+        // address certificatesAddr = 0x9AB21513bf9c107CE53B6326500A1567C642c794;
+        // address resourcesAddr = 0x19E6949Ee9f371bD12d7B15A0Ce0C6f3d16D2f5A;
+        // address wethAddr = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1; // https://arbiscan.io/address/0x82af49447d8a07e3bd95bd0d56f35241523fbab1
+
+        address shipsAddr = address(ships);
+        address certificatesAddr = address(certificates);
+        address resourcesAddr = address(resources);
+        address wethAddr = address(weth);
+
         uint256 blueprintCampaignId = setUpBlueprintCampaign(
-            address(ships),
-            address(certificates),
-            address(resources),
-            address(weth)
+            shipsAddr,
+            certificatesAddr,
+            resourcesAddr,
+            wethAddr
         );
 
         uint256 goldprintCampaignId = setUpGoldprintCampaign(
-            address(ships),
-            address(certificates),
-            address(resources),
-            address(weth)
+            shipsAddr,
+            certificatesAddr,
+            resourcesAddr,
+            wethAddr
         );
 
         mintAndTest(
