@@ -226,9 +226,8 @@ contract DeployAndConfigure1155Receive is Script, Test {
             recipient: payable(CNC_TREASURY)
         });
 
-        // TODO: ask Ryan about how to do an ERC20 instead of ERC1155
         consideration[3] = ConsiderationItem({
-            itemType: ItemType.ERC20, // TODO: here
+            itemType: ItemType.ERC20,
             token: wethAddr,
             identifierOrCriteria: 0,
             startAmount: 500,
@@ -236,9 +235,6 @@ contract DeployAndConfigure1155Receive is Script, Test {
             recipient: payable(CNC_TREASURY)
         });
 
-        // TODO: can make this does not need to update the trait
-        // Right now permissions are commented out in the contract so should work
-        // https://github.com/ethereum/ERCs/blob/db0ccb98c7e8c8fd9043d3b4b5fcf1827ef92cec/ERCS/erc-7498.md#metadata-uri
         TraitRedemption[] memory traitRedemptions = new TraitRedemption[](1);
         traitRedemptions[0] = TraitRedemption({
             substandard: 4, // an indicator integer
@@ -307,9 +303,6 @@ contract DeployAndConfigure1155Receive is Script, Test {
         });
 
         TraitRedemption[] memory traitRedemptions = new TraitRedemption[](1);
-        // TODO: can make this does not need to update the trait
-        // Right now permissions are commented out in the contract so should work
-        // https://github.com/ethereum/ERCs/blob/db0ccb98c7e8c8fd9043d3b4b5fcf1827ef92cec/ERCS/erc-7498.md#metadata-uri
         traitRedemptions[0] = TraitRedemption({
             substandard: 4, // an indicator integer
             token: address(certificatesAddr),
@@ -344,6 +337,13 @@ contract DeployAndConfigure1155Receive is Script, Test {
     }
 
     function run() external {
+        // Instructions for running:
+        // Run anvil in another terminal
+        // For the PK, I was using the first wallet from Anvil
+        // Run export PK=
+        // Run: export RPC_URL="http://127.0.0.1:8545"
+        // Run: forge script script/CNC.s.sol --rpc-url ${RPC_URL} --private-key ${PK}  -vvvv
+
         vm.startBroadcast();
 
         // make the tokens
