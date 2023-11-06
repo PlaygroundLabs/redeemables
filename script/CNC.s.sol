@@ -1,0 +1,398 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.19;
+
+import {Script} from "forge-std/Script.sol";
+import {Test} from "forge-std/Test.sol";
+import {ItemType} from "seaport-types/src/lib/ConsiderationEnums.sol";
+import {OfferItem, ConsiderationItem} from "seaport-types/src/lib/ConsiderationStructs.sol";
+import {CampaignParams, CampaignRequirements, TraitRedemption} from "../src/lib/RedeemablesStructs.sol";
+import {BURN_ADDRESS} from "../src/lib/RedeemablesConstants.sol";
+import {ERC721RedemptionMintable} from "../src/extensions/ERC721RedemptionMintable.sol";
+import {ERC721OwnerMintable} from "../src/test/ERC721OwnerMintable.sol";
+import {TestERC20} from "../test/utils/mocks/TestERC20.sol";
+
+// import {ERC1155ShipyardRedeemableMintable} from "../src/extensions/ERC1155ShipyardRedeemableMintable.sol";
+import {ERC721ShipyardRedeemableMintable} from "../src/extensions/ERC721ShipyardRedeemableMintable.sol";
+
+import {ERC721RedemptionMintable} from "../src/extensions/ERC721RedemptionMintable.sol";
+import {ERC721ShipyardRedeemableOwnerMintable} from "../src/test/ERC721ShipyardRedeemableOwnerMintable.sol";
+import {ERC1155ShipyardRedeemableOwnerMintable} from "../src/test/ERC1155ShipyardRedeemableOwnerMintable.sol";
+
+contract DeployAndConfigure1155Receive is Script, Test {
+    address CNC_TREASURY = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1;
+
+    // 0x6365727454797065000000000000000000000000000000000000000000000000
+    bytes32 traitKey = bytes32("certType");
+
+    bytes32 traitValueBlueprint = bytes32(uint256(1));
+    bytes32 traitValueGoldprint = bytes32(uint256(2));
+    uint32 campaignStartTime = 0; //  seconds since epoch
+    uint32 campaignEndTime = 2000000000; // seconds since epoch
+    uint32 maxCampaignRedemptions = 1_000_000_000;
+
+    function mintAndTest(
+        address shipsAddr,
+        address certificatesAddr,
+        address resourcesAddr,
+        address wethAddr
+    ) public {
+        // This mints tokens to msg.sender and tests calling redeem
+        // Right now, it redeems a blueprint and then a goldprint
+
+        ERC721ShipyardRedeemableMintable ships = ERC721ShipyardRedeemableMintable(
+                shipsAddr
+            );
+        ERC1155ShipyardRedeemableOwnerMintable certificates = ERC1155ShipyardRedeemableOwnerMintable(
+                certificatesAddr
+            );
+        ERC1155ShipyardRedeemableOwnerMintable resources = ERC1155ShipyardRedeemableOwnerMintable(
+                resourcesAddr
+            );
+
+        TestERC20 weth = TestERC20(wethAddr);
+
+        // Mint some tokens for the redeem ingredients
+        certificates.mint(msg.sender, 1, 1); // certificate
+        resources.mint(msg.sender, 1, 100); // ore
+        resources.mint(msg.sender, 2, 100); // lumber
+        weth.mint(msg.sender, 1200); // weth
+
+        certificates.setApprovalForAll(address(ships), true);
+        resources.setApprovalForAll(address(ships), true);
+        weth.approve(address(ships), 99999999);
+
+        // Set traits
+        certificates.setTrait(1, traitKey, traitValueBlueprint);
+
+        // Verify pre-redeem state
+        assertEq(certificates.balanceOf(msg.sender, 1), 1);
+        assertEq(certificates.balanceOf(CNC_TREASURY, 1), 0);
+        assertEq(resources.balanceOf(msg.sender, 1), 100);
+        assertEq(resources.balanceOf(msg.sender, 2), 100);
+        assertEq(weth.balanceOf(msg.sender), 1200);
+        assertEq(ships.balanceOf(CNC_TREASURY), 0);
+
+        // Let's redeem!
+        uint256 campaignId = 1;
+        uint256 requirementsIndex = 0;
+        bytes32 redemptionHash;
+        uint256[] memory traitRedemptionTokenIds = new uint256[](1);
+        traitRedemptionTokenIds[0] = 1;
+        uint256 salt;
+        bytes memory signature;
+        bytes memory data = abi.encode(
+            campaignId,
+            requirementsIndex,
+            redemptionHash,
+            traitRedemptionTokenIds,
+            salt,
+            signature
+        );
+
+        uint256[] memory tokenIds = new uint256[](4);
+        tokenIds[0] = 1;
+        tokenIds[1] = 1;
+        tokenIds[2] = 2;
+        tokenIds[3] = 1;
+
+        ships.redeem(tokenIds, msg.sender, data);
+
+        // Verify post-redeem state
+        assertEq(ships.ownerOf(1), msg.sender);
+        assertEq(weth.balanceOf(msg.sender), 700);
+        assertEq(weth.balanceOf(CNC_TREASURY), 500);
+
+        // These are requiring viaIR=true in found.toml for reasons I don't understand.
+        assertEq(certificates.balanceOf(msg.sender, 1), 0);
+        assertEq(certificates.balanceOf(CNC_TREASURY, 1), 0);
+        assertEq(resources.balanceOf(msg.sender, 1), 0);
+        assertEq(resources.balanceOf(msg.sender, 2), 0);
+        assertEq(resources.balanceOf(CNC_TREASURY, 1), 100);
+        assertEq(resources.balanceOf(CNC_TREASURY, 2), 100);
+
+        // Mint tokens for the goldprint campaign
+        certificates.mint(msg.sender, 7, 1); // certificate
+        certificates.setTrait(7, traitKey, traitValueGoldprint);
+        assertEq(certificates.getTraitValue(7, traitKey), traitValueGoldprint);
+
+        uint256[] memory traitRedemptionTokenIds2 = new uint256[](1);
+        traitRedemptionTokenIds2[0] = 7;
+        bytes memory data2 = abi.encode(
+            2, // campaing id. I think this isn't being picked up by redeem
+            requirementsIndex, // 0 because only one requirements
+            0x0,
+            traitRedemptionTokenIds2,
+            salt,
+            signature
+        );
+
+        uint256[] memory tokenIds2 = new uint256[](1);
+        tokenIds2[0] = 7;
+
+        assertEq(certificates.balanceOf(msg.sender, 7), 1);
+
+        ships.redeem(tokenIds2, msg.sender, data2);
+        assertEq(ships.ownerOf(2), msg.sender);
+
+        // Verify post-redeem state
+        // These are requiring viaIR=true in found.toml for reasons I don't understand.
+        assertEq(certificates.balanceOf(msg.sender, 7), 0);
+        assertEq(certificates.balanceOf(CNC_TREASURY, 7), 0);
+        assertEq(ships.ownerOf(2), msg.sender);
+    }
+
+    function doARedeem(address shipsAddr, uint256 tokenToRedeem) public {
+        // This was a helper function for testing a redeem
+        // on arb1 to already deployed contracts
+        // This was specificaly used for a goldprint
+
+        uint256[] memory traitRedemptionTokenIds = new uint256[](1);
+        traitRedemptionTokenIds[0] = 1;
+
+        bytes memory data = abi.encode(
+            2,
+            0,
+            0x0,
+            traitRedemptionTokenIds,
+            0x0,
+            0x0
+        );
+
+        uint256[] memory tokenIds = new uint256[](1);
+        tokenIds[0] = tokenToRedeem;
+
+        ERC721ShipyardRedeemableMintable(shipsAddr).redeem(
+            tokenIds,
+            msg.sender,
+            data
+        );
+    }
+
+    function setUpBlueprintCampaign(
+        address shipsAddr,
+        address certificatesAddr,
+        address resourcesAddr,
+        address wethAddr
+    ) public returns (uint256) {
+        // Creates a Blueprint campaigns for the ships contract considers the certificate, ore, lumber, and weth.
+        // The offer is a ship
+        // DynamicTraits are also checked on the ship and must correspond to blueprint.
+
+        // Offers: What the user receives from the redemption
+        // Considerations: what the user inputs to the redemption
+        // TraitRedemptions: qualities of the considerations' traits that must be met
+
+        ERC721ShipyardRedeemableMintable ships = ERC721ShipyardRedeemableMintable(
+                shipsAddr
+            );
+
+        //////////////////////////
+        /// Blueprint Campaign ///
+        //////////////////////////
+        OfferItem[] memory offer = new OfferItem[](1);
+        offer[0] = OfferItem({
+            itemType: ItemType.ERC721_WITH_CRITERIA,
+            token: address(ships),
+            identifierOrCriteria: 0,
+            startAmount: 1,
+            endAmount: 1
+        });
+
+        ConsiderationItem[] memory consideration = new ConsiderationItem[](4);
+        consideration[0] = ConsiderationItem({
+            itemType: ItemType.ERC1155_WITH_CRITERIA,
+            token: address(certificatesAddr),
+            identifierOrCriteria: 0,
+            startAmount: 1,
+            endAmount: 1,
+            recipient: payable(BURN_ADDRESS) // TODO: the burn is failing and it's transferring to the burn address
+        });
+
+        consideration[1] = ConsiderationItem({
+            itemType: ItemType.ERC1155,
+            token: address(resourcesAddr),
+            identifierOrCriteria: 1,
+            startAmount: 100,
+            endAmount: 100,
+            recipient: payable(CNC_TREASURY)
+        });
+
+        consideration[2] = ConsiderationItem({
+            itemType: ItemType.ERC1155,
+            token: address(resourcesAddr),
+            identifierOrCriteria: 2,
+            startAmount: 100,
+            endAmount: 100,
+            recipient: payable(CNC_TREASURY)
+        });
+
+        // TODO: ask Ryan about how to do an ERC20 instead of ERC1155
+        consideration[3] = ConsiderationItem({
+            itemType: ItemType.ERC20, // TODO: here
+            token: wethAddr,
+            identifierOrCriteria: 0,
+            startAmount: 500,
+            endAmount: 500,
+            recipient: payable(CNC_TREASURY)
+        });
+
+        // TODO: can make this does not need to update the trait
+        // Right now permissions are commented out in the contract so should work
+        // https://github.com/ethereum/ERCs/blob/db0ccb98c7e8c8fd9043d3b4b5fcf1827ef92cec/ERCS/erc-7498.md#metadata-uri
+        TraitRedemption[] memory traitRedemptions = new TraitRedemption[](1);
+        traitRedemptions[0] = TraitRedemption({
+            substandard: 4, // an indicator integer
+            token: address(certificatesAddr),
+            traitKey: traitKey,
+            traitValue: traitValueBlueprint, // new trait value
+            substandardValue: traitValueBlueprint // required previous value
+        });
+
+        // Create the first campaign for blueprints
+        CampaignRequirements[] memory requirements = new CampaignRequirements[](
+            1
+        );
+        requirements[0].offer = offer;
+        requirements[0].consideration = consideration;
+        requirements[0].traitRedemptions = traitRedemptions;
+
+        CampaignParams memory params = CampaignParams({
+            requirements: requirements,
+            signer: address(0),
+            startTime: campaignStartTime,
+            endTime: campaignEndTime,
+            maxCampaignRedemptions: maxCampaignRedemptions,
+            manager: msg.sender
+        });
+
+        uint campaignId = ships.createCampaign(
+            params,
+            "ipfs://QmQjubc6guHReNW5Es5ZrgDtJRwXk2Aia7BkVoLJGaCRqP"
+        );
+        assertEq(campaignId, 1);
+        return campaignId;
+    }
+
+    function setUpGoldprintCampaign(
+        address shipsAddr,
+        address certificatesAddr,
+        address resourcesAddr,
+        address wethAddr
+    ) public returns (uint256) {
+        // Setups the goldprint campaign
+        // Considerations:
+        // - certificate with the goldprint dynamic trait
+        // - offer: a ship
+        ERC721ShipyardRedeemableMintable ships = ERC721ShipyardRedeemableMintable(
+                shipsAddr
+            );
+
+        OfferItem[] memory offer = new OfferItem[](1);
+        offer[0] = OfferItem({
+            itemType: ItemType.ERC721_WITH_CRITERIA,
+            token: address(ships),
+            identifierOrCriteria: 0,
+            startAmount: 1,
+            endAmount: 1
+        });
+
+        ConsiderationItem[] memory consideration = new ConsiderationItem[](1);
+        consideration[0] = ConsiderationItem({
+            itemType: ItemType.ERC1155_WITH_CRITERIA,
+            token: address(certificatesAddr),
+            identifierOrCriteria: 0,
+            startAmount: 1,
+            endAmount: 1,
+            recipient: payable(BURN_ADDRESS) // TODO: the burn is failing and it's transferring to the burn address
+        });
+
+        TraitRedemption[] memory traitRedemptions = new TraitRedemption[](1);
+        // TODO: can make this does not need to update the trait
+        // Right now permissions are commented out in the contract so should work
+        // https://github.com/ethereum/ERCs/blob/db0ccb98c7e8c8fd9043d3b4b5fcf1827ef92cec/ERCS/erc-7498.md#metadata-uri
+        traitRedemptions[0] = TraitRedemption({
+            substandard: 4, // an indicator integer
+            token: address(certificatesAddr),
+            traitKey: traitKey,
+            traitValue: traitValueGoldprint, // new trait value
+            substandardValue: traitValueGoldprint // required previous value
+        });
+
+        // Create the second campaign for goldprint
+        CampaignRequirements[] memory requirements = new CampaignRequirements[](
+            1
+        );
+        requirements[0].offer = offer;
+        requirements[0].consideration = consideration;
+        requirements[0].traitRedemptions = traitRedemptions;
+        CampaignParams memory params = CampaignParams({
+            requirements: requirements,
+            signer: address(0),
+            startTime: campaignStartTime,
+            endTime: campaignEndTime,
+            maxCampaignRedemptions: maxCampaignRedemptions,
+            manager: msg.sender
+        });
+
+        uint campaignId = ships.createCampaign(
+            params,
+            "ipfs://QmQjubc6guHReNW5Es5ZrgDtJRwXk2Aia7BkVoLJGaCRqP"
+        );
+
+        assertEq(campaignId, 2);
+        return campaignId;
+    }
+
+    function run() external {
+        vm.startBroadcast();
+
+        // make the tokens
+        ERC1155ShipyardRedeemableOwnerMintable certificates = new ERC1155ShipyardRedeemableOwnerMintable(
+                "Certificates",
+                "CERTS"
+            );
+
+        ERC1155ShipyardRedeemableOwnerMintable resources = new ERC1155ShipyardRedeemableOwnerMintable(
+                "Resources",
+                "RSRCS"
+            );
+
+        TestERC20 weth = new TestERC20();
+
+        ERC721ShipyardRedeemableMintable ships = new ERC721ShipyardRedeemableMintable(
+                "Ships",
+                "SHIPS"
+            );
+
+        // address shipsAddr = 0x343f8F27f060E8C38acd759b103D7f1FE9f035Bc;
+        // address certificatesAddr = 0x9AB21513bf9c107CE53B6326500A1567C642c794;
+        // address resourcesAddr = 0x19E6949Ee9f371bD12d7B15A0Ce0C6f3d16D2f5A;
+        // address wethAddr = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1; // https://arbiscan.io/address/0x82af49447d8a07e3bd95bd0d56f35241523fbab1
+
+        address shipsAddr = address(ships);
+        address certificatesAddr = address(certificates);
+        address resourcesAddr = address(resources);
+        address wethAddr = address(weth);
+
+        uint256 blueprintCampaignId = setUpBlueprintCampaign(
+            shipsAddr,
+            certificatesAddr,
+            resourcesAddr,
+            wethAddr
+        );
+
+        uint256 goldprintCampaignId = setUpGoldprintCampaign(
+            shipsAddr,
+            certificatesAddr,
+            resourcesAddr,
+            wethAddr
+        );
+
+        mintAndTest(
+            address(ships),
+            address(certificates),
+            address(resources),
+            address(weth)
+        );
+    }
+}
