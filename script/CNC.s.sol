@@ -20,7 +20,10 @@ import {ERC1155ShipyardRedeemableOwnerMintable} from "../src/test/ERC1155Shipyar
 
 contract DeployAndConfigure1155Receive is Script, Test {
     address CNC_TREASURY = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1;
+
+    // 0x6365727454797065000000000000000000000000000000000000000000000000
     bytes32 traitKey = bytes32("certType");
+
     bytes32 traitValueBlueprint = bytes32(uint256(1));
     bytes32 traitValueGoldprint = bytes32(uint256(2));
     uint32 campaignStartTime = 0; //  seconds since epoch
