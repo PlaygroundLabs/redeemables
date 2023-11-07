@@ -7,12 +7,11 @@ import {ItemType} from "seaport-types/src/lib/ConsiderationEnums.sol";
 import {OfferItem, ConsiderationItem} from "seaport-types/src/lib/ConsiderationStructs.sol";
 import {CampaignParams, CampaignRequirements, TraitRedemption} from "../src/lib/RedeemablesStructs.sol";
 import {BURN_ADDRESS} from "../src/lib/RedeemablesConstants.sol";
-import {ERC721RedemptionMintable} from "../src/extensions/ERC721RedemptionMintable.sol";
-import {TestERC20} from "../test/utils/mocks/TestERC20.sol";
 
+import {TestERC20} from "../test/utils/mocks/TestERC20.sol";
 import {ERC721ShipyardRedeemableMintable} from "../src/extensions/ERC721ShipyardRedeemableMintable.sol";
-import {ERC721RedemptionMintable} from "../src/extensions/ERC721RedemptionMintable.sol";
 import {ERC1155ShipyardRedeemableMintable} from "../src/extensions/ERC1155ShipyardRedeemableMintable.sol";
+import {ERC721ShipyardRedeemableMintableRentable} from "../src/extensions/ERC721ShipyardRedeemableMintableRentable.sol";
 
 contract DeployAndConfigure1155Receive is Script, Test {
     address CNC_TREASURY = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1;
@@ -510,10 +509,7 @@ contract DeployAndConfigure1155Receive is Script, Test {
                 "CNC-RSRCS"
             );
 
-        ERC721ShipyardRedeemableMintable ships = new ERC721ShipyardRedeemableMintable(
-                "Captain & Company - Ships",
-                "CNC-SHIPS"
-            );
+        ERC721ShipyardRedeemableMintableRentable ships = new ERC721ShipyardRedeemableMintableRentable("Captain & Company - Ships", "CNC-SHIPS");
 
         ERC721ShipyardRedeemableMintable cosmetics = new ERC721ShipyardRedeemableMintable(
                 "Cosmetics",
