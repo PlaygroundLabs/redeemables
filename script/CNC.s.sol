@@ -14,6 +14,8 @@ import {TestERC20} from "../test/utils/mocks/TestERC20.sol";
 // import {ERC1155ShipyardRedeemableMintable} from "../src/extensions/ERC1155ShipyardRedeemableMintable.sol";
 import {ERC721ShipyardRedeemableMintable} from "../src/extensions/ERC721ShipyardRedeemableMintable.sol";
 
+
+import {ERC721SeaDropBurnablePreapproved} from "../src/extensions/ERC721SeaDropBurnablePreapproved.sol";
 import {ERC721RedemptionMintable} from "../src/extensions/ERC721RedemptionMintable.sol";
 import {ERC721ShipyardRedeemableOwnerMintable} from "../src/test/ERC721ShipyardRedeemableOwnerMintable.sol";
 import {ERC1155ShipyardRedeemableOwnerMintable} from "../src/test/ERC1155ShipyardRedeemableOwnerMintable.sol";
@@ -24,8 +26,11 @@ contract DeployAndConfigure1155Receive is Script, Test {
     // 0x6365727454797065000000000000000000000000000000000000000000000000
     bytes32 traitKey = bytes32("certType");
 
-    bytes32 traitValueBlueprint = bytes32(uint256(1));
-    bytes32 traitValueGoldprint = bytes32(uint256(2));
+    bytes32 traitValueWraithBlueprint = bytes32(uint256(1));
+    bytes32 traitValueWraithGoldprint = bytes32(uint256(2));
+    bytes32 traitValueClockworkBlueprint = bytes32(uint256(3));
+    bytes32 traitValueClockworkGoldprint = bytes32(uint256(4));
+
     uint32 campaignStartTime = 0; //  seconds since epoch
     uint32 campaignEndTime = 2000000000; // seconds since epoch
     uint32 maxCampaignRedemptions = 1_000_000_000;
@@ -62,7 +67,7 @@ contract DeployAndConfigure1155Receive is Script, Test {
         weth.approve(address(ships), 99999999);
 
         // Set traits
-        certificates.setTrait(1, traitKey, traitValueBlueprint);
+        certificates.setTrait(1, traitKey, traitValueWraithBlueprint);
 
         // Verify pre-redeem state
         assertEq(certificates.balanceOf(msg.sender, 1), 1);
@@ -112,8 +117,11 @@ contract DeployAndConfigure1155Receive is Script, Test {
 
         // Mint tokens for the goldprint campaign
         certificates.mint(msg.sender, 7, 1); // certificate
-        certificates.setTrait(7, traitKey, traitValueGoldprint);
-        assertEq(certificates.getTraitValue(7, traitKey), traitValueGoldprint);
+        certificates.setTrait(7, traitKey, traitValueWraithGoldprint);
+        assertEq(
+            certificates.getTraitValue(7, traitKey),
+            traitValueWraithGoldprint
+        );
 
         uint256[] memory traitRedemptionTokenIds2 = new uint256[](1);
         traitRedemptionTokenIds2[0] = 7;
@@ -240,8 +248,8 @@ contract DeployAndConfigure1155Receive is Script, Test {
             substandard: 4, // an indicator integer
             token: address(certificatesAddr),
             traitKey: traitKey,
-            traitValue: traitValueBlueprint, // new trait value
-            substandardValue: traitValueBlueprint // required previous value
+            traitValue: traitValueWraithBlueprint, // new trait value
+            substandardValue: traitValueWraithBlueprint // required previous value
         });
 
         // Create the first campaign for blueprints
@@ -307,8 +315,8 @@ contract DeployAndConfigure1155Receive is Script, Test {
             substandard: 4, // an indicator integer
             token: address(certificatesAddr),
             traitKey: traitKey,
-            traitValue: traitValueGoldprint, // new trait value
-            substandardValue: traitValueGoldprint // required previous value
+            traitValue: traitValueWraithGoldprint, // new trait value
+            substandardValue: traitValueWraithGoldprint // required previous value
         });
 
         // Create the second campaign for goldprint
@@ -336,6 +344,21 @@ contract DeployAndConfigure1155Receive is Script, Test {
         return campaignId;
     }
 
+    function mintAndSetTraits(address certificatesAddr) public {
+        // Test function for minting and setting traits
+        // I used this set up some test certificates for chris
+        ERC1155ShipyardRedeemableOwnerMintable certificates = ERC1155ShipyardRedeemableOwnerMintable(
+                certificatesAddr
+            );
+        for (uint i = 10; i < 60; i++) {
+            certificates.mint(msg.sender, i, 1); // certificate
+        }
+
+        for (uint i = 10; i < 60; i++) {
+            certificates.setTrait(i, traitKey, traitValueWraithGoldprint);
+        }
+    }
+
     function run() external {
         // Instructions for running:
         // Run anvil in another terminal
@@ -346,7 +369,12 @@ contract DeployAndConfigure1155Receive is Script, Test {
 
         vm.startBroadcast();
 
-        // make the tokens
+        // Deploy the contracts
+        ERC721ShipyardRedeemableMintable lootboxes = new ERC721ShipyardRedeemableMintable(
+                "Clockwork Lootbox",
+                "CLKWRK-LB"
+            );
+
         ERC1155ShipyardRedeemableOwnerMintable certificates = new ERC1155ShipyardRedeemableOwnerMintable(
                 "Certificates",
                 "CERTS"
@@ -364,35 +392,43 @@ contract DeployAndConfigure1155Receive is Script, Test {
                 "SHIPS"
             );
 
-        // address shipsAddr = 0x343f8F27f060E8C38acd759b103D7f1FE9f035Bc;
-        // address certificatesAddr = 0x9AB21513bf9c107CE53B6326500A1567C642c794;
-        // address resourcesAddr = 0x19E6949Ee9f371bD12d7B15A0Ce0C6f3d16D2f5A;
-        // address wethAddr = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1; // https://arbiscan.io/address/0x82af49447d8a07e3bd95bd0d56f35241523fbab1
+        ERC721ShipyardRedeemableMintable cosmetics = new ERC721ShipyardRedeemableMintable(
+                "Cosmetics",
+                "COSM"
+            );
 
         address shipsAddr = address(ships);
         address certificatesAddr = address(certificates);
         address resourcesAddr = address(resources);
         address wethAddr = address(weth);
 
-        uint256 blueprintCampaignId = setUpBlueprintCampaign(
-            shipsAddr,
-            certificatesAddr,
-            resourcesAddr,
-            wethAddr
-        );
+        // Arbitrum Goerli addresses
+        // address shipsAddr = 0x343f8F27f060E8C38acd759b103D7f1FE9f035Bc;
+        // address certificatesAddr = 0x9AB21513bf9c107CE53B6326500A1567C642c794;
+        // address resourcesAddr = 0x19E6949Ee9f371bD12d7B15A0Ce0C6f3d16D2f5A;
+        // address wethAddr = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1; // https://arbiscan.io/address/0x82af49447d8a07e3bd95bd0d56f35241523fbab1
 
-        uint256 goldprintCampaignId = setUpGoldprintCampaign(
-            shipsAddr,
-            certificatesAddr,
-            resourcesAddr,
-            wethAddr
-        );
+        // mintAndSetTraits(certificatesAddr);
 
-        mintAndTest(
-            address(ships),
-            address(certificates),
-            address(resources),
-            address(weth)
-        );
+        // uint256 blueprintCampaignId = setUpBlueprintCampaign(
+        //     shipsAddr,
+        //     certificatesAddr,
+        //     resourcesAddr,
+        //     wethAddr
+        // );
+
+        // uint256 goldprintCampaignId = setUpGoldprintCampaign(
+        //     shipsAddr,
+        //     certificatesAddr,
+        //     resourcesAddr,
+        //     wethAddr
+        // );
+
+        // mintAndTest(
+        //     address(ships),
+        //     address(certificates),
+        //     address(resources),
+        //     address(weth)
+        // );
     }
 }
