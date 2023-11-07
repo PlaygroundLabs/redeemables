@@ -38,9 +38,9 @@ contract ERC1155ShipyardRedeemableMintable is
         }
 
         // Increment nextTokenId first so more of the same token id cannot be minted through reentrancy.
-        // ++_nextTokenId;
+        ++_nextTokenId;
 
-        // _mint(recipient, _nextTokenId - 1, 1, "");
+        _mint(recipient, _nextTokenId - 1, 1, "");
     }
 
     function supportsInterface(

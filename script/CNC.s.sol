@@ -47,6 +47,14 @@ contract DeployAndConfigure1155Receive is Script, Test {
         lootboxes.mint(msg.sender, tokenId);
         lootboxes.setApprovalForAll(certificatesAddr, true); // TODO: remove me
 
+        assertEq(lootboxes.balanceOf(msg.sender), 1); // confirm they have the lootbox
+        assertEq(certificates.balanceOf(msg.sender, 1), 0);
+        assertEq(certificates.balanceOf(msg.sender, 2), 0);
+        assertEq(certificates.balanceOf(msg.sender, 3), 0);
+        assertEq(certificates.balanceOf(msg.sender, 4), 0);
+        assertEq(certificates.balanceOf(msg.sender, 5), 0);
+        assertEq(certificates.balanceOf(msg.sender, 6), 0);
+
         uint256[] memory traitRedemptionTokenIds = new uint256[](0);
         bytes memory data = abi.encode(
             1, // campaignId,
@@ -61,6 +69,17 @@ contract DeployAndConfigure1155Receive is Script, Test {
         tokenIds[0] = tokenId;
 
         certificates.redeem(tokenIds, msg.sender, data);
+
+        // confirm msg.sender got the right number of certs
+        assertEq(certificates.balanceOf(msg.sender, 1), 1);
+        assertEq(certificates.balanceOf(msg.sender, 2), 1);
+        assertEq(certificates.balanceOf(msg.sender, 3), 1);
+        assertEq(certificates.balanceOf(msg.sender, 4), 1);
+        assertEq(certificates.balanceOf(msg.sender, 5), 1);
+        assertEq(certificates.balanceOf(msg.sender, 6), 0);
+
+        // confirm they no longer have the lootbox
+        assertEq(lootboxes.balanceOf(msg.sender), 0);
     }
 
     function mintAndTest(
@@ -215,8 +234,36 @@ contract DeployAndConfigure1155Receive is Script, Test {
                 certificatesAddr
             );
 
-        OfferItem[] memory offer = new OfferItem[](1);
+        OfferItem[] memory offer = new OfferItem[](5);
         offer[0] = OfferItem({
+            itemType: ItemType.ERC1155_WITH_CRITERIA,
+            token: certificatesAddr,
+            identifierOrCriteria: 0,
+            startAmount: 1,
+            endAmount: 1 // TODO: should be 3
+        });
+        offer[1] = OfferItem({
+            itemType: ItemType.ERC1155_WITH_CRITERIA,
+            token: certificatesAddr,
+            identifierOrCriteria: 0,
+            startAmount: 1,
+            endAmount: 1 // TODO: should be 3
+        });
+        offer[2] = OfferItem({
+            itemType: ItemType.ERC1155_WITH_CRITERIA,
+            token: certificatesAddr,
+            identifierOrCriteria: 0,
+            startAmount: 1,
+            endAmount: 1 // TODO: should be 3
+        });
+        offer[3] = OfferItem({
+            itemType: ItemType.ERC1155_WITH_CRITERIA,
+            token: certificatesAddr,
+            identifierOrCriteria: 0,
+            startAmount: 1,
+            endAmount: 1 // TODO: should be 3
+        });
+        offer[4] = OfferItem({
             itemType: ItemType.ERC1155_WITH_CRITERIA,
             token: certificatesAddr,
             identifierOrCriteria: 0,
@@ -496,26 +543,25 @@ contract DeployAndConfigure1155Receive is Script, Test {
 
         mintAndTestLootboxRedeem(lootboxesAddr, certificatesAddr);
 
-        uint256 blueprintCampaignId = setUpBlueprintCampaign(
-            shipsAddr,
-            certificatesAddr,
-            resourcesAddr,
-            wethAddr
-        );
+        // uint256 blueprintCampaignId = setUpBlueprintCampaign(
+        //     shipsAddr,
+        //     certificatesAddr,
+        //     resourcesAddr,
+        //     wethAddr
+        // );
 
-        uint256 goldprintCampaignId = setUpGoldprintCampaign(
-            shipsAddr,
-            certificatesAddr,
-            resourcesAddr,
-            wethAddr
-        );
+        // uint256 goldprintCampaignId = setUpGoldprintCampaign(
+        //     shipsAddr,
+        //     certificatesAddr,
+        //     resourcesAddr,
+        //     wethAddr
+        // );
 
-        mintAndTest(
-            address(ships),
-            address(certificates),
-            address(resources),
-            address(weth)
-        );
-
+        // mintAndTest(
+        //     address(ships),
+        //     address(certificates),
+        //     address(resources),
+        //     address(weth)
+        // );
     }
 }
