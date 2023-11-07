@@ -43,9 +43,7 @@ contract DeployAndConfigure1155Receive is Script, Test {
                 certificatesAddr
             );
 
-        lootboxes.setPreapprovedAddress(certificatesAddr);
         lootboxes.mint(msg.sender, tokenId);
-        lootboxes.setApprovalForAll(certificatesAddr, true); // TODO: remove me
 
         assertEq(lootboxes.balanceOf(msg.sender), 1); // confirm they have the lootbox
         assertEq(certificates.balanceOf(msg.sender, 1), 0);
@@ -498,37 +496,40 @@ contract DeployAndConfigure1155Receive is Script, Test {
 
         // Deploy the contracts
         ERC721ShipyardRedeemableMintable lootboxes = new ERC721ShipyardRedeemableMintable(
-                "Clockwork Lootbox",
-                "CLKWRK-LB"
+                "Captain & Company - Clockwork Lootbox",
+                "CNC-CLTBX"
             );
 
         ERC1155ShipyardRedeemableMintable certificates = new ERC1155ShipyardRedeemableMintable(
-                "Certificates",
-                "CERTS"
+                "Captain & Company - Certificates",
+                "CNC-CERTS"
             );
 
         ERC1155ShipyardRedeemableMintable resources = new ERC1155ShipyardRedeemableMintable(
-                "Resources",
-                "RSRCS"
+                "Captain & Company - Resources",
+                "CNC-RSRCS"
             );
 
-        TestERC20 weth = new TestERC20();
-
         ERC721ShipyardRedeemableMintable ships = new ERC721ShipyardRedeemableMintable(
-                "Ships",
-                "SHIPS"
+                "Captain & Company - Ships",
+                "CNC-SHIPS"
             );
 
         ERC721ShipyardRedeemableMintable cosmetics = new ERC721ShipyardRedeemableMintable(
                 "Cosmetics",
-                "COSM"
+                "CNS-COSM"
             );
+
+        // TestERC20 weth = new TestERC20(); // for testing locally
 
         address lootboxesAddr = address(lootboxes);
         address shipsAddr = address(ships);
         address certificatesAddr = address(certificates);
         address resourcesAddr = address(resources);
-        address wethAddr = address(weth);
+        // address wethAddr = address(weth);
+
+        // Set up pre-approves
+        lootboxes.setPreapprovedAddress(certificatesAddr);
 
         // Arbitrum Goerli addresses
         // address shipsAddr = 0x343f8F27f060E8C38acd759b103D7f1FE9f035Bc;
@@ -541,7 +542,7 @@ contract DeployAndConfigure1155Receive is Script, Test {
 
         setUpCertificatesCampaign(lootboxesAddr, certificatesAddr);
 
-        mintAndTestLootboxRedeem(lootboxesAddr, certificatesAddr);
+        // mintAndTestLootboxRedeem(lootboxesAddr, certificatesAddr);
 
         // uint256 blueprintCampaignId = setUpBlueprintCampaign(
         //     shipsAddr,
