@@ -32,3 +32,7 @@
 [submodule "lib/shipyard-core"]
 	path = lib/shipyard-core
 	url = https://github.com/ProjectOpenSea/shipyard-core.git
+[submodule "lib/seadrop-v1"]
+	path = lib/seadrop-v1
+	url = git@github.com:ProjectOpenSea/seadrop.git
+	branch = ryan/burnable-preapproved
