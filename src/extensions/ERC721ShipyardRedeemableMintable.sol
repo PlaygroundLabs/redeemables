@@ -96,4 +96,9 @@ contract ERC721ShipyardRedeemableMintable is
     function burn(uint256 tokenId) external {
         _burn(tokenId);
     }
+
+    // TODO: For testing
+    function mint(address to, uint256 tokenId) public onlyOwner {
+        _mint(to, tokenId);
+    }
 }

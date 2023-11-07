@@ -8,15 +8,11 @@ import {OfferItem, ConsiderationItem} from "seaport-types/src/lib/ConsiderationS
 import {CampaignParams, CampaignRequirements, TraitRedemption} from "../src/lib/RedeemablesStructs.sol";
 import {BURN_ADDRESS} from "../src/lib/RedeemablesConstants.sol";
 import {ERC721RedemptionMintable} from "../src/extensions/ERC721RedemptionMintable.sol";
-import {ERC721OwnerMintable} from "../src/test/ERC721OwnerMintable.sol";
 import {TestERC20} from "../test/utils/mocks/TestERC20.sol";
 
-// import {ERC1155ShipyardRedeemableMintable} from "../src/extensions/ERC1155ShipyardRedeemableMintable.sol";
 import {ERC721ShipyardRedeemableMintable} from "../src/extensions/ERC721ShipyardRedeemableMintable.sol";
-
 import {ERC721RedemptionMintable} from "../src/extensions/ERC721RedemptionMintable.sol";
-import {ERC721ShipyardRedeemableOwnerMintable} from "../src/test/ERC721ShipyardRedeemableOwnerMintable.sol";
-import {ERC1155ShipyardRedeemableOwnerMintable} from "../src/test/ERC1155ShipyardRedeemableOwnerMintable.sol";
+import {ERC1155ShipyardRedeemableMintable} from "../src/extensions/ERC1155ShipyardRedeemableMintable.sol";
 
 contract DeployAndConfigure1155Receive is Script, Test {
     address CNC_TREASURY = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1;
@@ -33,6 +29,40 @@ contract DeployAndConfigure1155Receive is Script, Test {
     uint32 campaignEndTime = 2000000000; // seconds since epoch
     uint32 maxCampaignRedemptions = 1_000_000_000;
 
+    function mintAndTestLootboxRedeem(
+        address lootboxesAdddr,
+        address certificatesAddr
+    ) public {
+        uint campaignId = 1;
+        uint tokenId = 1;
+        ERC721ShipyardRedeemableMintable lootboxes = ERC721ShipyardRedeemableMintable(
+                lootboxesAdddr
+            );
+
+        ERC1155ShipyardRedeemableMintable certificates = ERC1155ShipyardRedeemableMintable(
+                certificatesAddr
+            );
+
+        lootboxes.setPreapprovedAddress(certificatesAddr);
+        lootboxes.mint(msg.sender, tokenId);
+        lootboxes.setApprovalForAll(certificatesAddr, true); // TODO: remove me
+
+        uint256[] memory traitRedemptionTokenIds = new uint256[](0);
+        bytes memory data = abi.encode(
+            1, // campaignId,
+            0,
+            bytes32(0),
+            traitRedemptionTokenIds,
+            uint256(0),
+            bytes("")
+        );
+
+        uint256[] memory tokenIds = new uint256[](1);
+        tokenIds[0] = tokenId;
+
+        certificates.redeem(tokenIds, msg.sender, data);
+    }
+
     function mintAndTest(
         address shipsAddr,
         address certificatesAddr,
@@ -45,10 +75,10 @@ contract DeployAndConfigure1155Receive is Script, Test {
         ERC721ShipyardRedeemableMintable ships = ERC721ShipyardRedeemableMintable(
                 shipsAddr
             );
-        ERC1155ShipyardRedeemableOwnerMintable certificates = ERC1155ShipyardRedeemableOwnerMintable(
+        ERC1155ShipyardRedeemableMintable certificates = ERC1155ShipyardRedeemableMintable(
                 certificatesAddr
             );
-        ERC1155ShipyardRedeemableOwnerMintable resources = ERC1155ShipyardRedeemableOwnerMintable(
+        ERC1155ShipyardRedeemableMintable resources = ERC1155ShipyardRedeemableMintable(
                 resourcesAddr
             );
 
@@ -181,7 +211,7 @@ contract DeployAndConfigure1155Receive is Script, Test {
         // Setups the certificates campaign.
         // A single lootbox should yield a certificate.
 
-        ERC1155ShipyardRedeemableOwnerMintable certificates = ERC1155ShipyardRedeemableOwnerMintable(
+        ERC1155ShipyardRedeemableMintable certificates = ERC1155ShipyardRedeemableMintable(
                 certificatesAddr
             );
 
@@ -191,7 +221,7 @@ contract DeployAndConfigure1155Receive is Script, Test {
             token: certificatesAddr,
             identifierOrCriteria: 0,
             startAmount: 1,
-            endAmount: 3
+            endAmount: 1 // TODO: should be 3
         });
 
         ConsiderationItem[] memory consideration = new ConsiderationItem[](1);
@@ -397,7 +427,7 @@ contract DeployAndConfigure1155Receive is Script, Test {
     function mintAndSetTraits(address certificatesAddr) public {
         // Test function for minting and setting traits
         // I used this set up some test certificates for chris
-        ERC1155ShipyardRedeemableOwnerMintable certificates = ERC1155ShipyardRedeemableOwnerMintable(
+        ERC1155ShipyardRedeemableMintable certificates = ERC1155ShipyardRedeemableMintable(
                 certificatesAddr
             );
         for (uint i = 10; i < 60; i++) {
@@ -425,12 +455,12 @@ contract DeployAndConfigure1155Receive is Script, Test {
                 "CLKWRK-LB"
             );
 
-        ERC1155ShipyardRedeemableOwnerMintable certificates = new ERC1155ShipyardRedeemableOwnerMintable(
+        ERC1155ShipyardRedeemableMintable certificates = new ERC1155ShipyardRedeemableMintable(
                 "Certificates",
                 "CERTS"
             );
 
-        ERC1155ShipyardRedeemableOwnerMintable resources = new ERC1155ShipyardRedeemableOwnerMintable(
+        ERC1155ShipyardRedeemableMintable resources = new ERC1155ShipyardRedeemableMintable(
                 "Resources",
                 "RSRCS"
             );
@@ -459,11 +489,12 @@ contract DeployAndConfigure1155Receive is Script, Test {
         // address resourcesAddr = 0x19E6949Ee9f371bD12d7B15A0Ce0C6f3d16D2f5A;
         // address wethAddr = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1; // https://arbiscan.io/address/0x82af49447d8a07e3bd95bd0d56f35241523fbab1
 
-        setUpCertificatesCampaign(lootboxesAddr, certificatesAddr);
-
+        // Used for on-chain, not locally
         // mintAndSetTraits(certificatesAddr);
 
-        // testCertificateRedeem(lootboxesAddr, certificatesAddr);
+        setUpCertificatesCampaign(lootboxesAddr, certificatesAddr);
+
+        mintAndTestLootboxRedeem(lootboxesAddr, certificatesAddr);
 
         uint256 blueprintCampaignId = setUpBlueprintCampaign(
             shipsAddr,
@@ -485,5 +516,6 @@ contract DeployAndConfigure1155Receive is Script, Test {
             address(resources),
             address(weth)
         );
+
     }
 }

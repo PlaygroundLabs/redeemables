@@ -12,19 +12,25 @@ import {ERC1155ShipyardRedeemable} from "../ERC1155ShipyardRedeemable.sol";
 import {IRedemptionMintable} from "../interfaces/IRedemptionMintable.sol";
 import {TraitRedemption} from "../lib/RedeemablesStructs.sol";
 
-contract ERC1155ShipyardRedeemableMintable is ERC1155ShipyardRedeemable, IRedemptionMintable {
+contract ERC1155ShipyardRedeemableMintable is
+    ERC1155ShipyardRedeemable,
+    IRedemptionMintable
+{
     /// @dev Revert if the sender of mintRedemption is not this contract.
     error InvalidSender();
 
     /// @dev The next token id to mint. Each token will have a supply of 1.
     uint256 _nextTokenId = 1;
 
-    constructor(string memory name_, string memory symbol_) ERC1155ShipyardRedeemable(name_, symbol_) {}
+    constructor(
+        string memory name_,
+        string memory symbol_
+    ) ERC1155ShipyardRedeemable(name_, symbol_) {}
 
     function mintRedemption(
-        uint256, /* campaignId */
+        uint256 /* campaignId */,
         address recipient,
-        ConsiderationItem[] calldata, /* consideration */
+        ConsiderationItem[] calldata /* consideration */,
         TraitRedemption[] calldata /* traitRedemptions */
     ) external {
         if (msg.sender != address(this)) {
@@ -32,19 +38,30 @@ contract ERC1155ShipyardRedeemableMintable is ERC1155ShipyardRedeemable, IRedemp
         }
 
         // Increment nextTokenId first so more of the same token id cannot be minted through reentrancy.
-        ++_nextTokenId;
+        // ++_nextTokenId;
 
-        _mint(recipient, _nextTokenId - 1, 1, "");
+        // _mint(recipient, _nextTokenId - 1, 1, "");
     }
 
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        virtual
-        override(ERC1155ShipyardRedeemable)
-        returns (bool)
-    {
-        return interfaceId == type(IRedemptionMintable).interfaceId
-            || ERC1155ShipyardRedeemable.supportsInterface(interfaceId);
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view virtual override(ERC1155ShipyardRedeemable) returns (bool) {
+        return
+            interfaceId == type(IRedemptionMintable).interfaceId ||
+            ERC1155ShipyardRedeemable.supportsInterface(interfaceId);
+    }
+
+    // TODO: for testing
+    function mint(
+        address to,
+        uint256 tokenId,
+        uint256 amount
+    ) public onlyOwner {
+        _mint(to, tokenId, amount, "");
+    }
+
+    // TODO: make so only approved addresses? maybe that's internal
+    function burn(address account, uint256 id, uint256 value) public {
+        _burn(account, id, value);
     }
 }
