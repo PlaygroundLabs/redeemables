@@ -193,6 +193,18 @@ contract DeployAndConfigure1155Receive is Script, Test {
         assertEq(ships.ownerOf(2), msg.sender);
     }
 
+    function testRentals(address shipsAddr) public {
+        ERC721ShipyardRedeemableMintableRentable ships = ERC721ShipyardRedeemableMintableRentable(
+                shipsAddr
+            );
+
+        ships.mint(msg.sender, 101);
+        assertEq(ships.userOf(1), address(0));
+        uint64 expires = 2000000000;
+        ships.setUser(101, msg.sender, expires);
+        assertEq(ships.userOf(101), msg.sender);
+    }
+
     function doARedeem(address shipsAddr, uint256 tokenToRedeem) public {
         // This was a helper function for testing a redeem
         // on arb1 to already deployed contracts
@@ -509,7 +521,10 @@ contract DeployAndConfigure1155Receive is Script, Test {
                 "CNC-RSRCS"
             );
 
-        ERC721ShipyardRedeemableMintableRentable ships = new ERC721ShipyardRedeemableMintableRentable("Captain & Company - Ships", "CNC-SHIPS");
+        ERC721ShipyardRedeemableMintableRentable ships = new ERC721ShipyardRedeemableMintableRentable(
+                "Captain & Company - Ships",
+                "CNC-SHIPS"
+            );
 
         ERC721ShipyardRedeemableMintable cosmetics = new ERC721ShipyardRedeemableMintable(
                 "Cosmetics",
@@ -560,5 +575,7 @@ contract DeployAndConfigure1155Receive is Script, Test {
         //     address(resources),
         //     address(weth)
         // );
+
+        testRentals(shipsAddr);
     }
 }
