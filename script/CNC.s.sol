@@ -14,8 +14,6 @@ import {TestERC20} from "../test/utils/mocks/TestERC20.sol";
 // import {ERC1155ShipyardRedeemableMintable} from "../src/extensions/ERC1155ShipyardRedeemableMintable.sol";
 import {ERC721ShipyardRedeemableMintable} from "../src/extensions/ERC721ShipyardRedeemableMintable.sol";
 
-
-import {ERC721SeaDropBurnablePreapproved} from "../src/extensions/ERC721SeaDropBurnablePreapproved.sol";
 import {ERC721RedemptionMintable} from "../src/extensions/ERC721RedemptionMintable.sol";
 import {ERC721ShipyardRedeemableOwnerMintable} from "../src/test/ERC721ShipyardRedeemableOwnerMintable.sol";
 import {ERC1155ShipyardRedeemableOwnerMintable} from "../src/test/ERC1155ShipyardRedeemableOwnerMintable.sol";
@@ -174,6 +172,58 @@ contract DeployAndConfigure1155Receive is Script, Test {
             msg.sender,
             data
         );
+    }
+
+    function setUpCertificatesCampaign(
+        address lootboxesAddr,
+        address certificatesAddr
+    ) public returns (uint256) {
+        // Setups the certificates campaign.
+        // A single lootbox should yield a certificate.
+
+        ERC1155ShipyardRedeemableOwnerMintable certificates = ERC1155ShipyardRedeemableOwnerMintable(
+                certificatesAddr
+            );
+
+        OfferItem[] memory offer = new OfferItem[](1);
+        offer[0] = OfferItem({
+            itemType: ItemType.ERC1155_WITH_CRITERIA,
+            token: certificatesAddr,
+            identifierOrCriteria: 0,
+            startAmount: 1,
+            endAmount: 3
+        });
+
+        ConsiderationItem[] memory consideration = new ConsiderationItem[](1);
+        consideration[0] = ConsiderationItem({
+            itemType: ItemType.ERC721_WITH_CRITERIA,
+            token: lootboxesAddr,
+            identifierOrCriteria: 0,
+            startAmount: 1,
+            endAmount: 1,
+            recipient: payable(BURN_ADDRESS) // TODO: the burn is failing and it's transferring to the burn address
+        });
+
+        // Create the second campaign for goldprint
+        CampaignRequirements[] memory requirements = new CampaignRequirements[](
+            1
+        );
+        requirements[0].offer = offer;
+        requirements[0].consideration = consideration;
+
+        CampaignParams memory params = CampaignParams({
+            requirements: requirements,
+            signer: address(0),
+            startTime: campaignStartTime,
+            endTime: campaignEndTime,
+            maxCampaignRedemptions: maxCampaignRedemptions,
+            manager: msg.sender
+        });
+
+        uint campaignId = certificates.createCampaign(params, "uri://");
+
+        assertEq(campaignId, 1);
+        return campaignId;
     }
 
     function setUpBlueprintCampaign(
@@ -397,6 +447,7 @@ contract DeployAndConfigure1155Receive is Script, Test {
                 "COSM"
             );
 
+        address lootboxesAddr = address(lootboxes);
         address shipsAddr = address(ships);
         address certificatesAddr = address(certificates);
         address resourcesAddr = address(resources);
@@ -408,27 +459,31 @@ contract DeployAndConfigure1155Receive is Script, Test {
         // address resourcesAddr = 0x19E6949Ee9f371bD12d7B15A0Ce0C6f3d16D2f5A;
         // address wethAddr = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1; // https://arbiscan.io/address/0x82af49447d8a07e3bd95bd0d56f35241523fbab1
 
+        setUpCertificatesCampaign(lootboxesAddr, certificatesAddr);
+
         // mintAndSetTraits(certificatesAddr);
 
-        // uint256 blueprintCampaignId = setUpBlueprintCampaign(
-        //     shipsAddr,
-        //     certificatesAddr,
-        //     resourcesAddr,
-        //     wethAddr
-        // );
+        // testCertificateRedeem(lootboxesAddr, certificatesAddr);
 
-        // uint256 goldprintCampaignId = setUpGoldprintCampaign(
-        //     shipsAddr,
-        //     certificatesAddr,
-        //     resourcesAddr,
-        //     wethAddr
-        // );
+        uint256 blueprintCampaignId = setUpBlueprintCampaign(
+            shipsAddr,
+            certificatesAddr,
+            resourcesAddr,
+            wethAddr
+        );
 
-        // mintAndTest(
-        //     address(ships),
-        //     address(certificates),
-        //     address(resources),
-        //     address(weth)
-        // );
+        uint256 goldprintCampaignId = setUpGoldprintCampaign(
+            shipsAddr,
+            certificatesAddr,
+            resourcesAddr,
+            wethAddr
+        );
+
+        mintAndTest(
+            address(ships),
+            address(certificates),
+            address(resources),
+            address(weth)
+        );
     }
 }

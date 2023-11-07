@@ -12,19 +12,32 @@ import {ERC721ShipyardRedeemable} from "../ERC721ShipyardRedeemable.sol";
 import {IRedemptionMintable} from "../interfaces/IRedemptionMintable.sol";
 import {TraitRedemption} from "../lib/RedeemablesStructs.sol";
 
-contract ERC721ShipyardRedeemableMintable is ERC721ShipyardRedeemable, IRedemptionMintable {
+contract ERC721ShipyardRedeemableMintable is
+    ERC721ShipyardRedeemable,
+    IRedemptionMintable
+{
     /// @dev Revert if the sender of mintRedemption is not this contract.
     error InvalidSender();
+
+    /// @dev The preapproved address.
+    address internal _preapprovedAddress;
+
+    /// @dev The preapproved OpenSea conduit address.
+    address internal immutable _CONDUIT =
+        0x1E0049783F008A0085193E00003D00cd54003c71;
 
     /// @dev The next token id to mint.
     uint256 _nextTokenId = 1;
 
-    constructor(string memory name_, string memory symbol_) ERC721ShipyardRedeemable(name_, symbol_) {}
+    constructor(
+        string memory name_,
+        string memory symbol_
+    ) ERC721ShipyardRedeemable(name_, symbol_) {}
 
     function mintRedemption(
-        uint256, /* campaignId */
+        uint256 /* campaignId */,
         address recipient,
-        ConsiderationItem[] calldata, /* consideration */
+        ConsiderationItem[] calldata /* consideration */,
         TraitRedemption[] calldata /* traitRedemptions */
     ) external {
         if (msg.sender != address(this)) {
@@ -36,14 +49,51 @@ contract ERC721ShipyardRedeemableMintable is ERC721ShipyardRedeemable, IRedempti
         _mint(recipient, _nextTokenId - 1);
     }
 
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        virtual
-        override(ERC721ShipyardRedeemable)
-        returns (bool)
-    {
-        return interfaceId == type(IRedemptionMintable).interfaceId
-            || ERC721ShipyardRedeemable.supportsInterface(interfaceId);
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view virtual override(ERC721ShipyardRedeemable) returns (bool) {
+        return
+            interfaceId == type(IRedemptionMintable).interfaceId ||
+            ERC721ShipyardRedeemable.supportsInterface(interfaceId);
+    }
+
+    /**
+     * @notice Set the preapproved address. Only callable by the owner.
+     *
+     * @param newPreapprovedAddress The new preapproved address.
+     */
+    function setPreapprovedAddress(
+        address newPreapprovedAddress
+    ) external onlyOwner {
+        _preapprovedAddress = newPreapprovedAddress;
+    }
+
+    /**
+     * @dev Returns if the `operator` is allowed to manage all of the assets
+     *      of `owner`.
+     *
+     * See {setApprovalForAll}.
+     */
+    function isApprovedForAll(
+        address owner,
+        address operator
+    ) public view virtual override returns (bool) {
+        if (operator == _CONDUIT || operator == _preapprovedAddress) {
+            return true;
+        }
+        return super.isApprovedForAll(owner, operator);
+    }
+
+    /**
+     * @notice Burns `tokenId`. The caller must own `tokenId` or be an
+     *         approved operator.
+     *
+     * @param tokenId The token id to burn.
+     */
+    // solhint-disable-next-line comprehensive-interface
+    // TODO: does this need permissions or to check approvals?
+    // I didn't see anything on the internal implement of _burn.
+    function burn(uint256 tokenId) external {
+        _burn(tokenId);
     }
 }
