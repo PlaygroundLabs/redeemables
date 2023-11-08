@@ -23,6 +23,21 @@ contract DeployAndConfigure1155Receive is Script, Test {
     bytes32 traitValueWraithGoldprint = bytes32(uint256(2));
     bytes32 traitValueClockworkBlueprint = bytes32(uint256(3));
     bytes32 traitValueClockworkGoldprint = bytes32(uint256(4));
+    bytes32 traitValueT1Lumber = bytes32(uint256(5));
+    bytes32 traitValueT2Lumber = bytes32(uint256(6));
+    bytes32 traitValueT3Lumber = bytes32(uint256(7));
+    bytes32 traitValueT1Ore = bytes32(uint256(8));
+    bytes32 traitValueT2Ore = bytes32(uint256(9));
+    bytes32 traitValueT3Ore = bytes32(uint256(10));
+
+    uint32 t1LumberTokenId = 1;
+    uint32 t2LumberTokenId = 2;
+    uint32 t3LumberTokenId = 3;
+    uint32 t1OreTokenId = 4;
+    uint32 t2OreTokenId = 5;
+    uint32 t3OreTokenId = 6;
+
+    uint32 resourcesAmount = 10_000;
 
     uint32 campaignStartTime = 0; //  seconds since epoch
     uint32 campaignEndTime = 2000000000; // seconds since epoch
@@ -480,6 +495,116 @@ contract DeployAndConfigure1155Receive is Script, Test {
         return campaignId;
     }
 
+    function setUpResourcesCampaign(
+        address certificatesAddr,
+        address resourcesAddr,
+        bytes32 traitValue,
+        uint32 resourcesTokenId,
+        uint32 resourcesAmount
+    ) public returns (uint256) {
+        // Sets up a single campaign for resources given the parameters
+        ERC1155ShipyardRedeemableMintable resources = ERC1155ShipyardRedeemableMintable(
+                resourcesAddr
+            );
+
+        OfferItem[] memory offer = new OfferItem[](1);
+        offer[0] = OfferItem({
+            itemType: ItemType.ERC1155_WITH_CRITERIA,
+            token: resourcesAddr,
+            identifierOrCriteria: resourcesTokenId,
+            startAmount: resourcesAmount,
+            endAmount: resourcesAmount
+        });
+
+        ConsiderationItem[] memory consideration = new ConsiderationItem[](1);
+        consideration[0] = ConsiderationItem({
+            itemType: ItemType.ERC1155_WITH_CRITERIA,
+            token: address(certificatesAddr),
+            identifierOrCriteria: 0,
+            startAmount: 1,
+            endAmount: 1,
+            recipient: payable(BURN_ADDRESS)
+        });
+
+        TraitRedemption[] memory traitRedemptions = new TraitRedemption[](1);
+        traitRedemptions[0] = TraitRedemption({
+            substandard: 4, // an indicator integer
+            token: address(certificatesAddr),
+            traitKey: traitKey,
+            traitValue: traitValue, // new trait value
+            substandardValue: traitValue // required previous value
+        });
+
+        // Create the second campaign for goldprint
+        CampaignRequirements[] memory requirements = new CampaignRequirements[](
+            1
+        );
+        requirements[0].offer = offer;
+        requirements[0].consideration = consideration;
+        requirements[0].traitRedemptions = traitRedemptions;
+        CampaignParams memory params = CampaignParams({
+            requirements: requirements,
+            signer: address(0),
+            startTime: campaignStartTime,
+            endTime: campaignEndTime,
+            maxCampaignRedemptions: maxCampaignRedemptions,
+            manager: msg.sender
+        });
+
+        uint256 campaignId = ERC1155ShipyardRedeemableMintable(resourcesAddr)
+            .createCampaign(params, "uri://");
+        return campaignId;
+    }
+
+    function setUpResourcesCampaigns(
+        address certificatesAddr,
+        address resourcesAddr
+    ) public {
+        // Sets up all the resources campaigns
+        setUpResourcesCampaign( // t1 lumber
+            certificatesAddr,
+            resourcesAddr,
+            traitValueT1Lumber,
+            t1LumberTokenId,
+            resourcesAmount
+        );
+        setUpResourcesCampaign( // t2 lumber
+            certificatesAddr,
+            resourcesAddr,
+            traitValueT2Lumber,
+            t2LumberTokenId,
+            resourcesAmount
+        );
+        setUpResourcesCampaign( // t3 lumber
+            certificatesAddr,
+            resourcesAddr,
+            traitValueT3Lumber,
+            t3LumberTokenId,
+            resourcesAmount
+        );
+        setUpResourcesCampaign( // t1 ore
+            certificatesAddr,
+            resourcesAddr,
+            traitValueT1Ore,
+            t1OreTokenId,
+            resourcesAmount
+        );
+        setUpResourcesCampaign( // t2 ore
+            certificatesAddr,
+            resourcesAddr,
+            traitValueT2Ore,
+            t2OreTokenId,
+            resourcesAmount
+        );
+        setUpResourcesCampaign( // t3 ore
+            certificatesAddr,
+            resourcesAddr,
+            traitValueT3Lumber,
+            t3LumberTokenId,
+            resourcesAmount
+        );
+    }
+
     function mintAndSetTraits(address certificatesAddr) public {
         // Test function for minting and setting traits
         // I used this set up some test certificates for chris
@@ -506,41 +631,41 @@ contract DeployAndConfigure1155Receive is Script, Test {
         vm.startBroadcast();
 
         // Deploy the contracts
-        // ERC721ShipyardRedeemableMintable lootboxes = new ERC721ShipyardRedeemableMintable(
-        //         "Captain & Company - Clockwork Lootbox",
-        //         "CNC-CLTBX"
-        //     );
+        ERC721ShipyardRedeemableMintable lootboxes = new ERC721ShipyardRedeemableMintable(
+                "Captain & Company - Clockwork Lootbox",
+                "CNC-CLTBX"
+            );
 
-        // ERC1155ShipyardRedeemableMintable certificates = new ERC1155ShipyardRedeemableMintable(
-        //         "Captain & Company - Certificates",
-        //         "CNC-CERTS"
-        //     );
+        ERC1155ShipyardRedeemableMintable certificates = new ERC1155ShipyardRedeemableMintable(
+                "Captain & Company - Certificates",
+                "CNC-CERTS"
+            );
 
-        // ERC1155ShipyardRedeemableMintable resources = new ERC1155ShipyardRedeemableMintable(
-        //         "Captain & Company - Resources",
-        //         "CNC-RSRCS"
-        //     );
+        ERC1155ShipyardRedeemableMintable resources = new ERC1155ShipyardRedeemableMintable(
+                "Captain & Company - Resources",
+                "CNC-RSRCS"
+            );
 
         ERC721ShipyardRedeemableMintableRentable ships = new ERC721ShipyardRedeemableMintableRentable(
                 "Captain & Company - Ships",
                 "CNC-SHIPS"
             );
 
-        // ERC721ShipyardRedeemableMintable cosmetics = new ERC721ShipyardRedeemableMintable(
-        //         "Cosmetics",
-        //         "CNS-COSM"
-        //     );
+        ERC721ShipyardRedeemableMintable cosmetics = new ERC721ShipyardRedeemableMintable(
+                "Cosmetics",
+                "CNS-COSM"
+            );
 
-        // TestERC20 weth = new TestERC20(); // for testing locally
+        TestERC20 weth = new TestERC20(); // for testing locally
 
-        // address lootboxesAddr = address(lootboxes);
-        // address shipsAddr = address(ships);
-        // address certificatesAddr = address(certificates);
-        // address resourcesAddr = address(resources);
-        // address wethAddr = address(weth);
+        address lootboxesAddr = address(lootboxes);
+        address shipsAddr = address(ships);
+        address certificatesAddr = address(certificates);
+        address resourcesAddr = address(resources);
+        address wethAddr = address(weth);
 
         // Set up pre-approves
-        // lootboxes.setPreapprovedAddress(certificatesAddr);
+        lootboxes.setPreapprovedAddress(certificatesAddr);
 
         // Arbitrum Goerli addresses
         // address shipsAddr = 0x343f8F27f060E8C38acd759b103D7f1FE9f035Bc;
@@ -554,6 +679,8 @@ contract DeployAndConfigure1155Receive is Script, Test {
         // setUpCertificatesCampaign(lootboxesAddr, certificatesAddr);
 
         // mintAndTestLootboxRedeem(lootboxesAddr, certificatesAddr);
+
+        setUpResourcesCampaigns(certificatesAddr, resourcesAddr);
 
         // uint256 blueprintCampaignId = setUpBlueprintCampaign(
         //     shipsAddr,
