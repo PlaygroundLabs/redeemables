@@ -38,6 +38,7 @@ contract DeployAndConfigure1155Receive is Script, Test {
     uint32 t3OreTokenId = 6;
     uint32 shipLumberConsidered = 10_000;
     uint32 shipOreConsidered = 7_500;
+    uint32 wethConsidered = 500;
     uint32 resourcesOffered = 10_000;
 
     uint32 campaignStartTime = 0; //  seconds since epoch
@@ -95,14 +96,13 @@ contract DeployAndConfigure1155Receive is Script, Test {
         assertEq(lootboxes.balanceOf(msg.sender), 0);
     }
 
-    function mintAndTest(
+    function testWraithRedeems(
         address shipsAddr,
         address certificatesAddr,
         address resourcesAddr,
         address wethAddr
     ) public {
-        // This mints tokens to msg.sender and tests calling redeem
-        // Right now, it redeems a blueprint and then a goldprint
+        // This tests redeeming the wraith blueprint and goldprint
 
         ERC721ShipyardRedeemableMintable ships = ERC721ShipyardRedeemableMintable(
                 shipsAddr
@@ -116,29 +116,27 @@ contract DeployAndConfigure1155Receive is Script, Test {
 
         TestERC20 weth = TestERC20(wethAddr);
 
+        // Wraith Blueprint Section
+
         // Mint some tokens for the redeem ingredients
         certificates.mint(msg.sender, 1, 1); // certificate
-        resources.mint(msg.sender, 1, 100); // ore
-        resources.mint(msg.sender, 2, 100); // lumber
-        weth.mint(msg.sender, 1200); // weth
-
+        resources.mint(msg.sender, t3LumberTokenId, 30_000);
+        resources.mint(msg.sender, t3OreTokenId, 30_000);
+        weth.mint(msg.sender, 20_000); // weth
         certificates.setApprovalForAll(address(ships), true);
         resources.setApprovalForAll(address(ships), true);
         weth.approve(address(ships), 99999999);
-
-        // Set traits
         certificates.setTrait(1, traitKey, traitValueWraithBlueprint);
 
         // Verify pre-redeem state
         assertEq(certificates.balanceOf(msg.sender, 1), 1);
         assertEq(certificates.balanceOf(CNC_TREASURY, 1), 0);
-        assertEq(resources.balanceOf(msg.sender, 1), 100);
-        assertEq(resources.balanceOf(msg.sender, 2), 100);
-        assertEq(weth.balanceOf(msg.sender), 1200);
+        assertEq(resources.balanceOf(msg.sender, t3LumberTokenId), 30_000);
+        assertEq(resources.balanceOf(msg.sender, t3OreTokenId), 30_000);
+        assertEq(weth.balanceOf(msg.sender), 20_000);
         assertEq(ships.balanceOf(CNC_TREASURY), 0);
 
         // Let's redeem!
-        uint256 campaignId = 1;
         uint256 requirementsIndex = 0;
         bytes32 redemptionHash;
         uint256[] memory traitRedemptionTokenIds = new uint256[](1);
@@ -146,7 +144,7 @@ contract DeployAndConfigure1155Receive is Script, Test {
         uint256 salt;
         bytes memory signature;
         bytes memory data = abi.encode(
-            campaignId,
+            1, // wraithBlueprintCampaignId
             requirementsIndex,
             redemptionHash,
             traitRedemptionTokenIds,
@@ -156,26 +154,38 @@ contract DeployAndConfigure1155Receive is Script, Test {
 
         uint256[] memory tokenIds = new uint256[](4);
         tokenIds[0] = 1;
-        tokenIds[1] = 1;
-        tokenIds[2] = 2;
+        tokenIds[1] = t3LumberTokenId;
+        tokenIds[2] = t3OreTokenId;
         tokenIds[3] = 1;
 
         ships.redeem(tokenIds, msg.sender, data);
 
         // Verify post-redeem state
         assertEq(ships.ownerOf(1), msg.sender);
-        assertEq(weth.balanceOf(msg.sender), 700);
-        assertEq(weth.balanceOf(CNC_TREASURY), 500);
+        assertEq(weth.balanceOf(msg.sender), 20_000 - wethConsidered);
+        assertEq(weth.balanceOf(CNC_TREASURY), wethConsidered);
 
-        // These are requiring viaIR=true in found.toml for reasons I don't understand.
         assertEq(certificates.balanceOf(msg.sender, 1), 0);
         assertEq(certificates.balanceOf(CNC_TREASURY, 1), 0);
-        assertEq(resources.balanceOf(msg.sender, 1), 0);
-        assertEq(resources.balanceOf(msg.sender, 2), 0);
-        assertEq(resources.balanceOf(CNC_TREASURY, 1), 100);
-        assertEq(resources.balanceOf(CNC_TREASURY, 2), 100);
+        assertEq(
+            resources.balanceOf(msg.sender, t3LumberTokenId),
+            30_000 - shipLumberConsidered
+        );
+        assertEq(
+            resources.balanceOf(msg.sender, t3OreTokenId),
+            30_000 - shipOreConsidered
+        );
+        assertEq(
+            resources.balanceOf(CNC_TREASURY, t3LumberTokenId),
+            shipLumberConsidered
+        );
+        assertEq(
+            resources.balanceOf(CNC_TREASURY, t3OreTokenId),
+            shipOreConsidered
+        );
 
-        // Mint tokens for the goldprint campaign
+        // Wraith Goldprint Section
+
         certificates.mint(msg.sender, 7, 1); // certificate
         certificates.setTrait(7, traitKey, traitValueWraithGoldprint);
         assertEq(
@@ -186,7 +196,7 @@ contract DeployAndConfigure1155Receive is Script, Test {
         uint256[] memory traitRedemptionTokenIds2 = new uint256[](1);
         traitRedemptionTokenIds2[0] = 7;
         bytes memory data2 = abi.encode(
-            2, // campaing id. I think this isn't being picked up by redeem
+            2, // wraithBlueprintCampaignId
             requirementsIndex, // 0 because only one requirements
             0x0,
             traitRedemptionTokenIds2,
@@ -377,8 +387,8 @@ contract DeployAndConfigure1155Receive is Script, Test {
             itemType: ItemType.ERC20,
             token: wethAddr,
             identifierOrCriteria: 0,
-            startAmount: 500,
-            endAmount: 500,
+            startAmount: wethConsidered,
+            endAmount: wethConsidered,
             recipient: payable(CNC_TREASURY)
         });
 
@@ -537,8 +547,8 @@ contract DeployAndConfigure1155Receive is Script, Test {
             itemType: ItemType.ERC20,
             token: wethAddr,
             identifierOrCriteria: 0,
-            startAmount: 500,
-            endAmount: 500,
+            startAmount: wethConsidered,
+            endAmount: wethConsidered,
             recipient: payable(CNC_TREASURY)
         });
 
@@ -871,14 +881,13 @@ contract DeployAndConfigure1155Receive is Script, Test {
             wethAddr
         );
 
-        // TODO: update test based on newest params
-        // mintAndTest(
-        //     address(ships),
-        //     address(certificates),
-        //     address(resources),
-        //     address(weth)
-        // );
+        testWraithRedeems(
+            address(ships),
+            address(certificates),
+            address(resources),
+            address(weth)
+        );
 
-        // testRentals(shipsAddr);
+        testRentals(shipsAddr);
     }
 }
