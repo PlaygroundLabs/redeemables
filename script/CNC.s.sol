@@ -29,6 +29,15 @@ contract DeployAndConfigure1155Receive is Script, Test {
     bytes32 traitValueT1Ore = bytes32(uint256(8));
     bytes32 traitValueT2Ore = bytes32(uint256(9));
     bytes32 traitValueT3Ore = bytes32(uint256(10));
+    bytes32 traitValueHat1 = bytes32(uint256(11));
+    bytes32 traitValueHat2 = bytes32(uint256(12));
+    bytes32 traitValueHat3 = bytes32(uint256(13));
+    bytes32 traitValueEyepiece1 = bytes32(uint256(14));
+    bytes32 traitValueEyepiece2 = bytes32(uint256(15));
+    bytes32 traitValueEyepiece3 = bytes32(uint256(16));
+    bytes32 traitValueCannon1 = bytes32(uint256(17));
+    bytes32 traitValueCannon2 = bytes32(uint256(18));
+    bytes32 traitValueCannon3 = bytes32(uint256(19));
 
     uint32 t1LumberTokenId = 1;
     uint32 t2LumberTokenId = 2;
@@ -797,6 +806,99 @@ contract DeployAndConfigure1155Receive is Script, Test {
         );
     }
 
+    function setUpCosmeticsCampaign(
+        address certificatesAddr,
+        address cosmeticsAddr,
+        bytes32 traitValue
+    ) public returns (uint256) {
+        OfferItem[] memory offer = new OfferItem[](1);
+        offer[0] = OfferItem({
+            itemType: ItemType.ERC721_WITH_CRITERIA,
+            token: cosmeticsAddr,
+            identifierOrCriteria: 0,
+            startAmount: 1,
+            endAmount: 1
+        });
+
+        ConsiderationItem[] memory consideration = new ConsiderationItem[](1);
+        consideration[0] = ConsiderationItem({
+            itemType: ItemType.ERC1155_WITH_CRITERIA,
+            token: certificatesAddr,
+            identifierOrCriteria: 0,
+            startAmount: 1,
+            endAmount: 1,
+            recipient: payable(BURN_ADDRESS)
+        });
+
+        TraitRedemption[] memory traitRedemptions = new TraitRedemption[](1);
+        traitRedemptions[0] = TraitRedemption({
+            substandard: 4, // an indicator integer
+            token: certificatesAddr,
+            traitKey: traitKey,
+            traitValue: traitValue, // new trait value
+            substandardValue: traitValue // required previous value
+        });
+
+        // Create the second campaign for goldprint
+        CampaignRequirements[] memory requirements = new CampaignRequirements[](
+            1
+        );
+        requirements[0].offer = offer;
+        requirements[0].consideration = consideration;
+        requirements[0].traitRedemptions = traitRedemptions;
+        CampaignParams memory params = CampaignParams({
+            requirements: requirements,
+            signer: address(0),
+            startTime: campaignStartTime,
+            endTime: campaignEndTime,
+            maxCampaignRedemptions: maxCampaignRedemptions,
+            manager: msg.sender
+        });
+
+        uint256 campaignId = ERC721ShipyardRedeemableMintable(cosmeticsAddr)
+            .createCampaign(params, "uri://");
+        return campaignId;
+    }
+
+    function setUpCosmeticsCampaigns(
+        address certificatesAddr,
+        address cosmeticsAddr
+    ) public {
+        setUpCosmeticsCampaign(certificatesAddr, cosmeticsAddr, traitValueHat1);
+        setUpCosmeticsCampaign(certificatesAddr, cosmeticsAddr, traitValueHat2);
+        setUpCosmeticsCampaign(certificatesAddr, cosmeticsAddr, traitValueHat3);
+        setUpCosmeticsCampaign(
+            certificatesAddr,
+            cosmeticsAddr,
+            traitValueEyepiece1
+        );
+        setUpCosmeticsCampaign(
+            certificatesAddr,
+            cosmeticsAddr,
+            traitValueEyepiece2
+        );
+        setUpCosmeticsCampaign(
+            certificatesAddr,
+            cosmeticsAddr,
+            traitValueEyepiece3
+        );
+        setUpCosmeticsCampaign(
+            certificatesAddr,
+            cosmeticsAddr,
+            traitValueCannon1
+        );
+        setUpCosmeticsCampaign(
+            certificatesAddr,
+            cosmeticsAddr,
+            traitValueCannon2
+        );
+        setUpCosmeticsCampaign(
+            certificatesAddr,
+            cosmeticsAddr,
+            traitValueCannon3
+        );
+    }
+
     function mintAndSetTraits(address certificatesAddr) public {
         // Test function for minting and setting traits
         // I used this set up some test certificates for chris
@@ -854,6 +956,7 @@ contract DeployAndConfigure1155Receive is Script, Test {
         address shipsAddr = address(ships);
         address certificatesAddr = address(certificates);
         address resourcesAddr = address(resources);
+        address cosmeticsAddr = address(cosmetics);
         address wethAddr = address(weth);
 
         // Set up pre-approves
@@ -873,6 +976,7 @@ contract DeployAndConfigure1155Receive is Script, Test {
         // mintAndTestLootboxRedeem(lootboxesAddr, certificatesAddr);
 
         setUpResourcesCampaigns(certificatesAddr, resourcesAddr);
+        setUpCosmeticsCampaigns(certificatesAddr, cosmeticsAddr);
 
         setUpShipCampaigns(
             shipsAddr,
