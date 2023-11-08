@@ -863,13 +863,15 @@ contract DeployAndConfigure1155Receive is Script, Test {
         // mintAndTestLootboxRedeem(lootboxesAddr, certificatesAddr);
 
         setUpResourcesCampaigns(certificatesAddr, resourcesAddr);
+
         setUpShipCampaigns(
+            shipsAddr,
             certificatesAddr,
-            resourcesAddr,
             resourcesAddr,
             wethAddr
         );
 
+        // TODO: update test based on newest params
         // mintAndTest(
         //     address(ships),
         //     address(certificates),
