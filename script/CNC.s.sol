@@ -14,7 +14,7 @@ import {ERC1155ShipyardRedeemableMintable} from "../src/extensions/ERC1155Shipya
 import {ERC721ShipyardRedeemableMintableRentable} from "../src/extensions/ERC721ShipyardRedeemableMintableRentable.sol";
 
 contract DeployAndConfigure1155Receive is Script, Test {
-    address CNC_TREASURY = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1;
+    address CNC_TREASURY = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1; // TODO: update me later
 
     // 0x6365727454797065000000000000000000000000000000000000000000000000
     bytes32 traitKey = bytes32("certType");
@@ -36,8 +36,9 @@ contract DeployAndConfigure1155Receive is Script, Test {
     uint32 t1OreTokenId = 4;
     uint32 t2OreTokenId = 5;
     uint32 t3OreTokenId = 6;
-
-    uint32 resourcesAmount = 10_000;
+    uint32 shipLumberConsidered = 10_000;
+    uint32 shipOreConsidered = 7_500;
+    uint32 resourcesOffered = 10_000;
 
     uint32 campaignStartTime = 0; //  seconds since epoch
     uint32 campaignEndTime = 2000000000; // seconds since epoch
@@ -69,7 +70,7 @@ contract DeployAndConfigure1155Receive is Script, Test {
 
         uint256[] memory traitRedemptionTokenIds = new uint256[](0);
         bytes memory data = abi.encode(
-            1, // campaignId,
+            campaignId,
             0,
             bytes32(0),
             traitRedemptionTokenIds,
@@ -322,32 +323,19 @@ contract DeployAndConfigure1155Receive is Script, Test {
         });
 
         uint campaignId = certificates.createCampaign(params, "uri://");
-
-        assertEq(campaignId, 1);
         return campaignId;
     }
 
-    function setUpBlueprintCampaign(
+    function setUpWraithBlueprintCampaign(
         address shipsAddr,
         address certificatesAddr,
         address resourcesAddr,
         address wethAddr
     ) public returns (uint256) {
-        // Creates a Blueprint campaigns for the ships contract considers the certificate, ore, lumber, and weth.
-        // The offer is a ship
-        // DynamicTraits are also checked on the ship and must correspond to blueprint.
-
-        // Offers: What the user receives from the redemption
-        // Considerations: what the user inputs to the redemption
-        // TraitRedemptions: qualities of the considerations' traits that must be met
-
         ERC721ShipyardRedeemableMintable ships = ERC721ShipyardRedeemableMintable(
                 shipsAddr
             );
 
-        //////////////////////////
-        /// Blueprint Campaign ///
-        //////////////////////////
         OfferItem[] memory offer = new OfferItem[](1);
         offer[0] = OfferItem({
             itemType: ItemType.ERC721_WITH_CRITERIA,
@@ -370,18 +358,18 @@ contract DeployAndConfigure1155Receive is Script, Test {
         consideration[1] = ConsiderationItem({
             itemType: ItemType.ERC1155,
             token: address(resourcesAddr),
-            identifierOrCriteria: 1,
-            startAmount: 100,
-            endAmount: 100,
+            identifierOrCriteria: t3LumberTokenId,
+            startAmount: shipLumberConsidered,
+            endAmount: shipLumberConsidered,
             recipient: payable(CNC_TREASURY)
         });
 
         consideration[2] = ConsiderationItem({
             itemType: ItemType.ERC1155,
             token: address(resourcesAddr),
-            identifierOrCriteria: 2,
-            startAmount: 100,
-            endAmount: 100,
+            identifierOrCriteria: t3OreTokenId,
+            startAmount: shipOreConsidered,
+            endAmount: shipOreConsidered,
             recipient: payable(CNC_TREASURY)
         });
 
@@ -424,17 +412,16 @@ contract DeployAndConfigure1155Receive is Script, Test {
             params,
             "ipfs://QmQjubc6guHReNW5Es5ZrgDtJRwXk2Aia7BkVoLJGaCRqP"
         );
-        assertEq(campaignId, 1);
         return campaignId;
     }
 
-    function setUpGoldprintCampaign(
+    function setUpWraithGoldprintCampaign(
         address shipsAddr,
         address certificatesAddr,
         address resourcesAddr,
         address wethAddr
     ) public returns (uint256) {
-        // Setups the goldprint campaign
+        // Setups the goldprint campaign for the wraith ship
         // Considerations:
         // - certificate with the goldprint dynamic trait
         // - offer: a ship
@@ -491,8 +478,203 @@ contract DeployAndConfigure1155Receive is Script, Test {
             "ipfs://QmQjubc6guHReNW5Es5ZrgDtJRwXk2Aia7BkVoLJGaCRqP"
         );
 
-        assertEq(campaignId, 2);
         return campaignId;
+    }
+
+    function setUpClockworkBlueprintCampaign(
+        address shipsAddr,
+        address certificatesAddr,
+        address resourcesAddr,
+        address wethAddr
+    ) public returns (uint256) {
+        // Creates a campaigns for clockwork ship from a blueprint.
+
+        ERC721ShipyardRedeemableMintable ships = ERC721ShipyardRedeemableMintable(
+                shipsAddr
+            );
+
+        //////////////////////////
+        /// Blueprint Campaign ///
+        //////////////////////////
+        OfferItem[] memory offer = new OfferItem[](1);
+        offer[0] = OfferItem({
+            itemType: ItemType.ERC721_WITH_CRITERIA,
+            token: address(ships),
+            identifierOrCriteria: 0,
+            startAmount: 1,
+            endAmount: 1
+        });
+
+        ConsiderationItem[] memory consideration = new ConsiderationItem[](4);
+        consideration[0] = ConsiderationItem({
+            itemType: ItemType.ERC1155_WITH_CRITERIA,
+            token: address(certificatesAddr),
+            identifierOrCriteria: 0,
+            startAmount: 1,
+            endAmount: 1,
+            recipient: payable(BURN_ADDRESS) // TODO: the burn is failing and it's transferring to the burn address
+        });
+
+        consideration[1] = ConsiderationItem({
+            itemType: ItemType.ERC1155,
+            token: address(resourcesAddr),
+            identifierOrCriteria: t2LumberTokenId,
+            startAmount: shipLumberConsidered,
+            endAmount: shipLumberConsidered,
+            recipient: payable(CNC_TREASURY)
+        });
+
+        consideration[2] = ConsiderationItem({
+            itemType: ItemType.ERC1155,
+            token: address(resourcesAddr),
+            identifierOrCriteria: t2OreTokenId,
+            startAmount: shipOreConsidered,
+            endAmount: shipOreConsidered,
+            recipient: payable(CNC_TREASURY)
+        });
+
+        consideration[3] = ConsiderationItem({
+            itemType: ItemType.ERC20,
+            token: wethAddr,
+            identifierOrCriteria: 0,
+            startAmount: 500,
+            endAmount: 500,
+            recipient: payable(CNC_TREASURY)
+        });
+
+        TraitRedemption[] memory traitRedemptions = new TraitRedemption[](1);
+        traitRedemptions[0] = TraitRedemption({
+            substandard: 4, // an indicator integer
+            token: address(certificatesAddr),
+            traitKey: traitKey,
+            traitValue: traitValueClockworkBlueprint, // new trait value
+            substandardValue: traitValueClockworkBlueprint // required previous value
+        });
+
+        // Create the first campaign for blueprints
+        CampaignRequirements[] memory requirements = new CampaignRequirements[](
+            1
+        );
+        requirements[0].offer = offer;
+        requirements[0].consideration = consideration;
+        requirements[0].traitRedemptions = traitRedemptions;
+
+        CampaignParams memory params = CampaignParams({
+            requirements: requirements,
+            signer: address(0),
+            startTime: campaignStartTime,
+            endTime: campaignEndTime,
+            maxCampaignRedemptions: maxCampaignRedemptions,
+            manager: msg.sender
+        });
+
+        uint campaignId = ships.createCampaign(
+            params,
+            "ipfs://QmQjubc6guHReNW5Es5ZrgDtJRwXk2Aia7BkVoLJGaCRqP"
+        );
+        return campaignId;
+    }
+
+    function setUpClockworkGoldprintCampaign(
+        address shipsAddr,
+        address certificatesAddr,
+        address resourcesAddr,
+        address wethAddr
+    ) public returns (uint256) {
+        // Setups the goldprint campaign
+        // Considerations:
+        // - certificate with the goldprint dynamic trait
+        // - offer: a ship
+        ERC721ShipyardRedeemableMintable ships = ERC721ShipyardRedeemableMintable(
+                shipsAddr
+            );
+
+        OfferItem[] memory offer = new OfferItem[](1);
+        offer[0] = OfferItem({
+            itemType: ItemType.ERC721_WITH_CRITERIA,
+            token: address(ships),
+            identifierOrCriteria: 0,
+            startAmount: 1,
+            endAmount: 1
+        });
+
+        ConsiderationItem[] memory consideration = new ConsiderationItem[](1);
+        consideration[0] = ConsiderationItem({
+            itemType: ItemType.ERC1155_WITH_CRITERIA,
+            token: address(certificatesAddr),
+            identifierOrCriteria: 0,
+            startAmount: 1,
+            endAmount: 1,
+            recipient: payable(BURN_ADDRESS) // TODO: the burn is failing and it's transferring to the burn address
+        });
+
+        TraitRedemption[] memory traitRedemptions = new TraitRedemption[](1);
+        traitRedemptions[0] = TraitRedemption({
+            substandard: 4, // an indicator integer
+            token: address(certificatesAddr),
+            traitKey: traitKey,
+            traitValue: traitValueClockworkGoldprint, // new trait value
+            substandardValue: traitValueClockworkGoldprint // required previous value
+        });
+
+        // Create the second campaign for goldprint
+        CampaignRequirements[] memory requirements = new CampaignRequirements[](
+            1
+        );
+        requirements[0].offer = offer;
+        requirements[0].consideration = consideration;
+        requirements[0].traitRedemptions = traitRedemptions;
+        CampaignParams memory params = CampaignParams({
+            requirements: requirements,
+            signer: address(0),
+            startTime: campaignStartTime,
+            endTime: campaignEndTime,
+            maxCampaignRedemptions: maxCampaignRedemptions,
+            manager: msg.sender
+        });
+
+        uint campaignId = ships.createCampaign(
+            params,
+            "ipfs://QmQjubc6guHReNW5Es5ZrgDtJRwXk2Aia7BkVoLJGaCRqP"
+        );
+
+        return campaignId;
+    }
+
+    function setUpShipCampaigns(
+        address shipsAddr,
+        address certificatesAddr,
+        address resourcesAddr,
+        address wethAddr
+    ) public {
+        // Sets up all four ship campaigns
+        setUpWraithBlueprintCampaign(
+            shipsAddr,
+            certificatesAddr,
+            resourcesAddr,
+            wethAddr
+        );
+
+        setUpWraithGoldprintCampaign(
+            shipsAddr,
+            certificatesAddr,
+            resourcesAddr,
+            wethAddr
+        );
+
+        setUpClockworkBlueprintCampaign(
+            shipsAddr,
+            certificatesAddr,
+            resourcesAddr,
+            wethAddr
+        );
+
+        setUpClockworkGoldprintCampaign(
+            shipsAddr,
+            certificatesAddr,
+            resourcesAddr,
+            wethAddr
+        );
     }
 
     function setUpResourcesCampaign(
@@ -566,42 +748,42 @@ contract DeployAndConfigure1155Receive is Script, Test {
             resourcesAddr,
             traitValueT1Lumber,
             t1LumberTokenId,
-            resourcesAmount
+            resourcesOffered
         );
         setUpResourcesCampaign( // t2 lumber
             certificatesAddr,
             resourcesAddr,
             traitValueT2Lumber,
             t2LumberTokenId,
-            resourcesAmount
+            resourcesOffered
         );
         setUpResourcesCampaign( // t3 lumber
             certificatesAddr,
             resourcesAddr,
             traitValueT3Lumber,
             t3LumberTokenId,
-            resourcesAmount
+            resourcesOffered
         );
         setUpResourcesCampaign( // t1 ore
             certificatesAddr,
             resourcesAddr,
             traitValueT1Ore,
             t1OreTokenId,
-            resourcesAmount
+            resourcesOffered
         );
         setUpResourcesCampaign( // t2 ore
             certificatesAddr,
             resourcesAddr,
             traitValueT2Ore,
             t2OreTokenId,
-            resourcesAmount
+            resourcesOffered
         );
         setUpResourcesCampaign( // t3 ore
             certificatesAddr,
             resourcesAddr,
-            traitValueT3Lumber,
-            t3LumberTokenId,
-            resourcesAmount
+            traitValueT3Ore,
+            t3OreTokenId,
+            resourcesOffered
         );
     }
 
@@ -681,20 +863,12 @@ contract DeployAndConfigure1155Receive is Script, Test {
         // mintAndTestLootboxRedeem(lootboxesAddr, certificatesAddr);
 
         setUpResourcesCampaigns(certificatesAddr, resourcesAddr);
-
-        // uint256 blueprintCampaignId = setUpBlueprintCampaign(
-        //     shipsAddr,
-        //     certificatesAddr,
-        //     resourcesAddr,
-        //     wethAddr
-        // );
-
-        // uint256 goldprintCampaignId = setUpGoldprintCampaign(
-        //     shipsAddr,
-        //     certificatesAddr,
-        //     resourcesAddr,
-        //     wethAddr
-        // );
+        setUpShipCampaigns(
+            certificatesAddr,
+            resourcesAddr,
+            resourcesAddr,
+            wethAddr
+        );
 
         // mintAndTest(
         //     address(ships),
