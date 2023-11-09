@@ -54,7 +54,7 @@ contract DeployAndConfigure1155Receive is Script, Test {
     uint32 campaignEndTime = 2000000000; // seconds since epoch
     uint32 maxCampaignRedemptions = 1_000_000_000;
 
-    function mintAndTestLootboxRedeem(
+    function testLootboxRedeem(
         address lootboxesAdddr,
         address certificatesAddr
     ) public {
@@ -240,16 +240,20 @@ contract DeployAndConfigure1155Receive is Script, Test {
         assertEq(ships.userOf(101), msg.sender);
     }
 
-    function doARedeem(address shipsAddr, uint256 tokenToRedeem) public {
+    function doARedeem(
+        address shipsAddr,
+        uint256 tokenToRedeem,
+        uint256 campaignId
+    ) public {
         // This was a helper function for testing a redeem
         // on arb1 to already deployed contracts
         // This was specificaly used for a goldprint
 
         uint256[] memory traitRedemptionTokenIds = new uint256[](1);
-        traitRedemptionTokenIds[0] = 1;
+        traitRedemptionTokenIds[0] = tokenToRedeem;
 
         bytes memory data = abi.encode(
-            2,
+            campaignId,
             0,
             0x0,
             traitRedemptionTokenIds,
@@ -925,55 +929,56 @@ contract DeployAndConfigure1155Receive is Script, Test {
         vm.startBroadcast();
 
         // Deploy the contracts
-        ERC721ShipyardRedeemableMintable lootboxes = new ERC721ShipyardRedeemableMintable(
-                "Captain & Company - Clockwork Lootbox",
-                "CNC-CLTBX"
-            );
+        // ERC721ShipyardRedeemableMintable lootboxes = new ERC721ShipyardRedeemableMintable(
+        //         "PlayMe Lootbox",
+        //         "PME-LTBX"
 
-        ERC1155ShipyardRedeemableMintable certificates = new ERC1155ShipyardRedeemableMintable(
-                "Captain & Company - Certificates",
-                "CNC-CERTS"
-            );
+        //         // "Captain & Company - Clockwork Lootbox",
+        //         // "CNC-CLTBX"
+        //     );
 
-        ERC1155ShipyardRedeemableMintable resources = new ERC1155ShipyardRedeemableMintable(
-                "Captain & Company - Resources",
-                "CNC-RSRCS"
-            );
+        // ERC1155ShipyardRedeemableMintable certificates = new ERC1155ShipyardRedeemableMintable(
+        //         "Captain & Company - Certificates",
+        //         "CNC-CERTS"
+        //     );
 
-        ERC721ShipyardRedeemableMintableRentable ships = new ERC721ShipyardRedeemableMintableRentable(
-                "Captain & Company - Ships",
-                "CNC-SHIPS"
-            );
+        // ERC1155ShipyardRedeemableMintable resources = new ERC1155ShipyardRedeemableMintable(
+        //         "Captain & Company - Resources",
+        //         "CNC-RSRCS"
+        //     );
 
-        ERC721ShipyardRedeemableMintable cosmetics = new ERC721ShipyardRedeemableMintable(
-                "Cosmetics",
-                "CNS-COSM"
-            );
+        // ERC721ShipyardRedeemableMintableRentable ships = new ERC721ShipyardRedeemableMintableRentable(
+        //         "Captain & Company - Ships",
+        //         "CNC-SHIPS"
+        //     );
 
-        // TestERC20 weth = new TestERC20(); // for testing locally
+        // ERC721ShipyardRedeemableMintable cosmetics = new ERC721ShipyardRedeemableMintable(
+        //         "Cosmetics",
+        //         "CNS-COSM"
+        //     );
 
-        address lootboxesAddr = address(lootboxes);
-        address shipsAddr = address(ships);
-        address certificatesAddr = address(certificates);
-        address resourcesAddr = address(resources);
-        address cosmeticsAddr = address(cosmetics);
+        // // TestERC20 weth = new TestERC20(); // for testing locally
+
+        // address lootboxesAddr = address(lootboxes);
+        // address shipsAddr = address(ships);
+        // address certificatesAddr = address(certificates);
+        // address resourcesAddr = address(resources);
+        // address cosmeticsAddr = address(cosmetics);
         // address wethAddr = address(weth);
 
         // Set up pre-approves
-        lootboxes.setPreapprovedAddress(certificatesAddr);
+        // lootboxes.setPreapprovedAddress(certificatesAddr);
 
-        // Arbitrum Goerli addresses
-        // address shipsAddr = 0x343f8F27f060E8C38acd759b103D7f1FE9f035Bc;
-        // address certificatesAddr = 0x9AB21513bf9c107CE53B6326500A1567C642c794;
-        // address resourcesAddr = 0x19E6949Ee9f371bD12d7B15A0Ce0C6f3d16D2f5A;
-        // address wethAddr = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1; // https://arbiscan.io/address/0x82af49447d8a07e3bd95bd0d56f35241523fbab1
+        // Arbitrum Goerli addresses (v2 deployment)
+        address shipsAddr = 0x343f8F27f060E8C38acd759b103D7f1FE9f035Bc;
+        address certificatesAddr = 0x9AB21513bf9c107CE53B6326500A1567C642c794;
+        address resourcesAddr = 0x19E6949Ee9f371bD12d7B15A0Ce0C6f3d16D2f5A;
+        address wethAddr = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1; // https://arbiscan.io/address/0x82af49447d8a07e3bd95bd0d56f35241523fbab1
 
         // Used for on-chain, not locally
         // mintAndSetTraits(certificatesAddr);
 
         // setUpCertificatesCampaign(lootboxesAddr, certificatesAddr);
-
-        // mintAndTestLootboxRedeem(lootboxesAddr, certificatesAddr);
 
         // setUpResourcesCampaigns(certificatesAddr, resourcesAddr);
         // setUpCosmeticsCampaigns(certificatesAddr, cosmeticsAddr);
@@ -984,6 +989,8 @@ contract DeployAndConfigure1155Receive is Script, Test {
         //     resourcesAddr,
         //     wethAddr
         // );
+
+        // testLootboxRedeem(lootboxesAddr, certificatesAddr);
 
         // testWraithRedeems(
         //     address(ships),
