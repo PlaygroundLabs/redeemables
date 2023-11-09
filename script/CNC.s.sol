@@ -14,7 +14,7 @@ import {ERC1155ShipyardRedeemableMintable} from "../src/extensions/ERC1155Shipya
 import {ERC721ShipyardRedeemableMintableRentable} from "../src/extensions/ERC721ShipyardRedeemableMintableRentable.sol";
 
 contract DeployAndConfigure1155Receive is Script, Test {
-    address CNC_TREASURY = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1; // TODO: update me later
+    address CNC_TREASURY = 0x2DC39C543028933ea5e45851Fa84ad8F95C4c1DE; // TODO: update me later
 
     // 0x6365727454797065000000000000000000000000000000000000000000000000
     bytes32 traitKey = bytes32("certType");
@@ -29,15 +29,15 @@ contract DeployAndConfigure1155Receive is Script, Test {
     bytes32 traitValueT1Ore = bytes32(uint256(8));
     bytes32 traitValueT2Ore = bytes32(uint256(9));
     bytes32 traitValueT3Ore = bytes32(uint256(10));
-    bytes32 traitValueHat1 = bytes32(uint256(11));
-    bytes32 traitValueHat2 = bytes32(uint256(12));
-    bytes32 traitValueHat3 = bytes32(uint256(13));
-    bytes32 traitValueEyepiece1 = bytes32(uint256(14));
-    bytes32 traitValueEyepiece2 = bytes32(uint256(15));
-    bytes32 traitValueEyepiece3 = bytes32(uint256(16));
-    bytes32 traitValueCannon1 = bytes32(uint256(17));
-    bytes32 traitValueCannon2 = bytes32(uint256(18));
-    bytes32 traitValueCannon3 = bytes32(uint256(19));
+    bytes32 traitValueHat1 = bytes32(uint256(11)); // straw hat
+    bytes32 traitValueHat2 = bytes32(uint256(12)); // horned helm
+    bytes32 traitValueHat3 = bytes32(uint256(13)); // tinkerer's goggles
+    bytes32 traitValueEyepiece1 = bytes32(uint256(14)); // eyepatch
+    bytes32 traitValueEyepiece2 = bytes32(uint256(15)); // carnival mask
+    bytes32 traitValueEyepiece3 = bytes32(uint256(16)); // rose tinted moncole
+    bytes32 traitValueCannon1 = bytes32(uint256(17)); // star cannon
+    bytes32 traitValueCannon2 = bytes32(uint256(18)); // pink party cannon
+    bytes32 traitValueCannon3 = bytes32(uint256(19)); // skeletal cannon
 
     uint32 t1LumberTokenId = 1;
     uint32 t2LumberTokenId = 2;
@@ -284,35 +284,35 @@ contract DeployAndConfigure1155Receive is Script, Test {
             token: certificatesAddr,
             identifierOrCriteria: 0,
             startAmount: 1,
-            endAmount: 1 // TODO: should be 3
+            endAmount: 1
         });
         offer[1] = OfferItem({
             itemType: ItemType.ERC1155_WITH_CRITERIA,
             token: certificatesAddr,
             identifierOrCriteria: 0,
             startAmount: 1,
-            endAmount: 1 // TODO: should be 3
+            endAmount: 1
         });
         offer[2] = OfferItem({
             itemType: ItemType.ERC1155_WITH_CRITERIA,
             token: certificatesAddr,
             identifierOrCriteria: 0,
             startAmount: 1,
-            endAmount: 1 // TODO: should be 3
+            endAmount: 1
         });
         offer[3] = OfferItem({
             itemType: ItemType.ERC1155_WITH_CRITERIA,
             token: certificatesAddr,
             identifierOrCriteria: 0,
             startAmount: 1,
-            endAmount: 1 // TODO: should be 3
+            endAmount: 1
         });
         offer[4] = OfferItem({
             itemType: ItemType.ERC1155_WITH_CRITERIA,
             token: certificatesAddr,
             identifierOrCriteria: 0,
             startAmount: 1,
-            endAmount: 1 // TODO: should be 3
+            endAmount: 1
         });
 
         ConsiderationItem[] memory consideration = new ConsiderationItem[](1);
@@ -322,7 +322,7 @@ contract DeployAndConfigure1155Receive is Script, Test {
             identifierOrCriteria: 0,
             startAmount: 1,
             endAmount: 1,
-            recipient: payable(BURN_ADDRESS) // TODO: the burn is failing and it's transferring to the burn address
+            recipient: payable(BURN_ADDRESS)
         });
 
         // Create the second campaign for goldprint
@@ -371,7 +371,7 @@ contract DeployAndConfigure1155Receive is Script, Test {
             identifierOrCriteria: 0,
             startAmount: 1,
             endAmount: 1,
-            recipient: payable(BURN_ADDRESS) // TODO: the burn is failing and it's transferring to the burn address
+            recipient: payable(BURN_ADDRESS)
         });
 
         consideration[1] = ConsiderationItem({
@@ -464,7 +464,7 @@ contract DeployAndConfigure1155Receive is Script, Test {
             identifierOrCriteria: 0,
             startAmount: 1,
             endAmount: 1,
-            recipient: payable(BURN_ADDRESS) // TODO: the burn is failing and it's transferring to the burn address
+            recipient: payable(BURN_ADDRESS)
         });
 
         TraitRedemption[] memory traitRedemptions = new TraitRedemption[](1);
@@ -531,7 +531,7 @@ contract DeployAndConfigure1155Receive is Script, Test {
             identifierOrCriteria: 0,
             startAmount: 1,
             endAmount: 1,
-            recipient: payable(BURN_ADDRESS) // TODO: the burn is failing and it's transferring to the burn address
+            recipient: payable(BURN_ADDRESS)
         });
 
         consideration[1] = ConsiderationItem({
@@ -624,7 +624,7 @@ contract DeployAndConfigure1155Receive is Script, Test {
             identifierOrCriteria: 0,
             startAmount: 1,
             endAmount: 1,
-            recipient: payable(BURN_ADDRESS) // TODO: the burn is failing and it's transferring to the burn address
+            recipient: payable(BURN_ADDRESS)
         });
 
         TraitRedemption[] memory traitRedemptions = new TraitRedemption[](1);
@@ -950,14 +950,14 @@ contract DeployAndConfigure1155Receive is Script, Test {
                 "CNS-COSM"
             );
 
-        TestERC20 weth = new TestERC20(); // for testing locally
+        // TestERC20 weth = new TestERC20(); // for testing locally
 
         address lootboxesAddr = address(lootboxes);
         address shipsAddr = address(ships);
         address certificatesAddr = address(certificates);
         address resourcesAddr = address(resources);
         address cosmeticsAddr = address(cosmetics);
-        address wethAddr = address(weth);
+        // address wethAddr = address(weth);
 
         // Set up pre-approves
         lootboxes.setPreapprovedAddress(certificatesAddr);
@@ -975,23 +975,23 @@ contract DeployAndConfigure1155Receive is Script, Test {
 
         // mintAndTestLootboxRedeem(lootboxesAddr, certificatesAddr);
 
-        setUpResourcesCampaigns(certificatesAddr, resourcesAddr);
-        setUpCosmeticsCampaigns(certificatesAddr, cosmeticsAddr);
+        // setUpResourcesCampaigns(certificatesAddr, resourcesAddr);
+        // setUpCosmeticsCampaigns(certificatesAddr, cosmeticsAddr);
 
-        setUpShipCampaigns(
-            shipsAddr,
-            certificatesAddr,
-            resourcesAddr,
-            wethAddr
-        );
+        // setUpShipCampaigns(
+        //     shipsAddr,
+        //     certificatesAddr,
+        //     resourcesAddr,
+        //     wethAddr
+        // );
 
-        testWraithRedeems(
-            address(ships),
-            address(certificates),
-            address(resources),
-            address(weth)
-        );
+        // testWraithRedeems(
+        //     address(ships),
+        //     address(certificates),
+        //     address(resources),
+        //     address(weth)
+        // );
 
-        testRentals(shipsAddr);
+        // testRentals(shipsAddr);
     }
 }
