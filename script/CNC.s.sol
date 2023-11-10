@@ -50,9 +50,9 @@ contract CNCContractScript is Script, Test {
     uint32 wethConsidered = 500;
     uint32 resourcesOffered = 10_000;
 
-    uint32 campaignStartTime = 0; //  seconds since epoch
-    uint32 campaignEndTime = 2000000000; // seconds since epoch
-    uint32 maxCampaignRedemptions = 1_000_000_000;
+    uint32 campaignStartTime = 1698796800; //  seconds since epoch
+    uint32 campaignEndTime = 1733011200; // seconds since epoch
+    uint32 maxCampaignRedemptions = 6500; // this is specifically for the lootbox
 
     function testLootboxRedeem(
         address lootboxesAdddr,
