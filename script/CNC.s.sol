@@ -68,7 +68,7 @@ contract CNCContractScript is Script, Test {
                 certificatesAddr
             );
 
-        lootboxes.mint(msg.sender, tokenId); // TODO: uncomment
+        // lootboxes.mint(msg.sender, tokenId); // TODO: uncomment
 
         assertEq(lootboxes.balanceOf(msg.sender), 1); // confirm they have the lootbox
         assertEq(certificates.balanceOf(msg.sender, 1), 0);
@@ -929,37 +929,37 @@ contract CNCContractScript is Script, Test {
                 "CNC-CLBX"
             );
 
-        ERC1155ShipyardRedeemableMintable certificates = new ERC1155ShipyardRedeemableMintable(
-                "Captain & Company - Certificates",
-                "CNC-CERTS"
-            );
+        // ERC1155ShipyardRedeemableMintable certificates = new ERC1155ShipyardRedeemableMintable(
+        //         "Captain & Company - Certificates",
+        //         "CNC-CERTS"
+        //     );
 
-        ERC1155ShipyardRedeemableMintable resources = new ERC1155ShipyardRedeemableMintable(
-                "Captain & Company - Resources",
-                "CNC-RSRCS"
-            );
+        // ERC1155ShipyardRedeemableMintable resources = new ERC1155ShipyardRedeemableMintable(
+        //         "Captain & Company - Resources",
+        //         "CNC-RSRCS"
+        //     );
 
-        ERC721ShipyardRedeemableMintableRentable ships = new ERC721ShipyardRedeemableMintableRentable(
-                "Captain & Company - Ships",
-                "CNC-SHIPS"
-            );
+        // ERC721ShipyardRedeemableMintableRentable ships = new ERC721ShipyardRedeemableMintableRentable(
+        //         "Captain & Company - Ships",
+        //         "CNC-SHIPS"
+        //     );
 
-        ERC721ShipyardRedeemableMintable cosmetics = new ERC721ShipyardRedeemableMintable(
-                "Cosmetics",
-                "CNS-COSM"
-            );
+        // ERC721ShipyardRedeemableMintable cosmetics = new ERC721ShipyardRedeemableMintable(
+        //         "Cosmetics",
+        //         "CNS-COSM"
+        //     );
 
         // TestERC20 weth = new TestERC20(); // for testing locally
 
-        address lootboxesAddr = address(lootboxes);
-        address shipsAddr = address(ships);
-        address certificatesAddr = address(certificates);
-        address resourcesAddr = address(resources);
-        address cosmeticsAddr = address(cosmetics);
+        // address lootboxesAddr = address(lootboxes);
+        // address shipsAddr = address(ships);
+        // address certificatesAddr = address(certificates);
+        // address resourcesAddr = address(resources);
+        // address cosmeticsAddr = address(cosmetics);
         // address wethAddr = address(weth);
 
         // Set up pre-approves
-        lootboxes.setPreapprovedAddress(certificatesAddr);
+        // lootboxes.setPreapprovedAddress(certificatesAddr);
 
         // Arbitrum Goerli addresses (v2 deployment)
         // address lootboxesAddr = 0x95A863f964534527f733e2fA1f4B09D7076A80ef;
@@ -972,7 +972,7 @@ contract CNCContractScript is Script, Test {
         // Used for on-chain, not locally
         // mintAndSetTraits(certificatesAddr);
 
-        setUpCertificatesCampaign(lootboxesAddr, certificatesAddr);
+        // setUpCertificatesCampaign(lootboxesAddr, certificatesAddr);
 
         // setUpShipCampaigns(
         //     shipsAddr,
@@ -983,7 +983,7 @@ contract CNCContractScript is Script, Test {
         // setUpResourcesCampaigns(resourcesAddr, certificatesAddr);
         // setUpCosmeticsCampaigns(cosmeticsAddr, certificatesAddr);
 
-        testLootboxRedeem(lootboxesAddr, certificatesAddr);
+        // testLootboxRedeem(lootboxesAddr, certificatesAddr);
 
         // testWraithRedeems(
         //     address(ships),

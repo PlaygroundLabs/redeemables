@@ -130,7 +130,7 @@ contract LootboxTests is Test {
         uint campaignId = 1;
         uint tokenId = 3;
 
-        lootboxes.mint(msg.sender, tokenId);
+        // lootboxes.mint(msg.sender, tokenId);
 
         assertEq(lootboxes.ownerOf(tokenId), msg.sender); // confirm they have the lootbox
         assertEq(certificates.balanceOf(msg.sender, 1), 0);
@@ -190,8 +190,8 @@ contract LootboxTests is Test {
     }
 
     function testMint() public {
-        lootboxes.mint(msg.sender, 1);
-        lootboxes.mint(address(0xABCD), 3);
+        // lootboxes.mint(msg.sender, 1);
+        // lootboxes.mint(address(0xABCD), 3);
 
         assertEq(lootboxes.ownerOf(1), msg.sender);
         assertEq(lootboxes.ownerOf(3), address(0xABCD));
@@ -201,7 +201,7 @@ contract LootboxTests is Test {
         address addr1 = address(0xDCBA);
         address addr2 = address(0xABCD);
 
-        lootboxes.mint(addr1, 1);
+        // lootboxes.mint(addr1, 1);
 
         vm.expectRevert();
         lootboxes.burn(100); // Revert because token does not exist
@@ -209,7 +209,7 @@ contract LootboxTests is Test {
         vm.startPrank(addr2); // https://book.getfoundry.sh/cheatcodes/prank
 
         vm.expectRevert();
-        lootboxes.mint(addr2, 2);
+        // lootboxes.mint(addr2, 2);
 
         vm.expectRevert();
         lootboxes.burn(1); // THIS SHOULD REVERT (but isn't)

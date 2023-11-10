@@ -99,7 +99,7 @@ contract ERC721ShipyardRedeemableMintable is
     }
 
     // TODO: For testing
-    function mint(address to, uint256 tokenId) public onlyOwner {
-        _mint(to, tokenId);
-    }
+    // function mint(address to, uint256 tokenId) public onlyOwner {
+    //     _mint(to, tokenId);
+    // }
 }
