@@ -157,7 +157,11 @@ contract LootboxTests is Test {
         uint256[] memory tokenIds = new uint256[](1);
         tokenIds[0] = tokenId;
 
+        lootboxes.setPreapprovedAddress(address(certificates));
+
         vm.prank(msg.sender);
+
+        // lootboxes.setApprovalForAll(address(certificates), true);
         certificates.redeem(tokenIds, msg.sender, data);
 
         vm.expectRevert(); // try redeeming again and expect revert
@@ -173,6 +177,7 @@ contract LootboxTests is Test {
 
         // // confirm they no longer have the lootbox
         assertEq(lootboxes.balanceOf(msg.sender), 0);
+        vm.stopPrank();
     }
 
     function testTesting() public {
