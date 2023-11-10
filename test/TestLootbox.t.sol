@@ -2,7 +2,9 @@
 pragma solidity ^0.8.19;
 import {ERC721ShipyardRedeemableMintable} from "../src/extensions/ERC721ShipyardRedeemableMintable.sol";
 import {BaseRedeemablesTest} from "./utils/BaseRedeemablesTest.sol";
+import {CNCContractScript} from "../script/CNC.s.sol";
 
+// contract ERC7498_SimpleRedeem is BaseRedeemablesTest, CNCContractScript {
 contract ERC7498_SimpleRedeem is BaseRedeemablesTest {
     ERC721ShipyardRedeemableMintable lootboxes;
 
