@@ -13,7 +13,7 @@ import {Test} from "forge-std/Test.sol";
 import {console} from "forge-std/console.sol";
 
 // contract ERC7498_SimpleRedeem is BaseRedeemablesTest, CNCContractScript {
-contract ERC7498_SimpleRedeem is Test {
+contract LootboxTests is Test {
     ERC721ShipyardRedeemableMintable lootboxes;
     ERC1155ShipyardRedeemableMintable certificates;
     ERC1155ShipyardRedeemableMintable resources;
@@ -209,7 +209,7 @@ contract ERC7498_SimpleRedeem is Test {
         lootboxes.mint(addr2, 2);
 
         vm.expectRevert();
-        lootboxes.burn(1); // revert because not owner or approved
+        lootboxes.burn(1); // THIS SHOULD REVERT (but isn't)
 
         vm.stopPrank();
     }
