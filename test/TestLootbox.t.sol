@@ -30,22 +30,23 @@ contract ERC7498_SimpleRedeem is BaseRedeemablesTest {
         assertEq(lootboxes.ownerOf(3), address(0xABCD));
     }
 
-    function testMintThenBurn() public {
+    function testMintAndBurn() public {
         address addr1 = address(0xDCBA);
         address addr2 = address(0xABCD);
 
         lootboxes.mint(addr1, 1);
 
-        // this burn should fail but it's not because addr2 isn't approved
-        // to burn addr1's token.
-        vm.startPrank(addr2);
-        // vm.expectRevert("burn fail");
-        lootboxes.burn(1);
+        vm.expectRevert();
+        lootboxes.burn(100); // Revert because token does not exist
 
-        // lootboxes.mint(msg.sender, 2);
-        // assertEq(lootboxes.ownerOf(2), addr2);
+        vm.startPrank(addr2); // https://book.getfoundry.sh/cheatcodes/prank
 
-        // vm.prank(addr2); // https://book.getfoundry.sh/cheatcodes/prank
-        // lootboxes.burn(2);
+        vm.expectRevert();
+        lootboxes.mint(addr2, 2);
+
+        vm.expectRevert();
+        lootboxes.burn(1); // revert because not owner or approved
+
+        vm.stopPrank();
     }
 }

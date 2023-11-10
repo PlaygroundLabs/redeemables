@@ -91,9 +91,12 @@ contract ERC721ShipyardRedeemableMintable is
      * @param tokenId The token id to burn.
      */
     // solhint-disable-next-line comprehensive-interface
-    // TODO: does this need permissions or to check approvals?
-    // I didn't see anything on the internal implement of _burn.
     function burn(uint256 tokenId) external {
+        require(
+            _isApprovedOrOwner(msg.sender, tokenId),
+            "ERC721: burn caller is not owner nor approved"
+        );
+
         _burn(tokenId);
     }
 
