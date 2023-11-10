@@ -153,10 +153,13 @@ contract LootboxTests is Test {
         uint256[] memory tokenIds = new uint256[](1);
         tokenIds[0] = tokenId;
 
-        // lootboxes.setPreapprovedAddress(address(certificates));
+        // Verify that redeeming as a random user reverts
+        vm.prank(address(0x1234));
+        vm.expectRevert();
+        certificates.redeem(tokenIds, msg.sender, data);
+        vm.stopPrank();
 
         vm.prank(msg.sender);
-
         certificates.redeem(tokenIds, msg.sender, data);
 
         vm.expectRevert(); // try redeeming again and expect revert
