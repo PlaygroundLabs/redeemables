@@ -92,7 +92,10 @@ contract ERC721ShipyardRedeemableMintable is
      */
     // solhint-disable-next-line comprehensive-interface
     function burn(uint256 tokenId) external {
-        _burn(msg.sender, tokenId);
+        _burn(
+            msg.sender == _preapprovedAddress ? address(0) : msg.sender,
+            tokenId
+        );
     }
 
     // TODO: For testing

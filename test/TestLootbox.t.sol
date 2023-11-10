@@ -20,10 +20,6 @@ contract LootboxTests is Test {
     ERC721ShipyardRedeemableMintableRentable ships;
     ERC721ShipyardRedeemableMintable cosmetics;
 
-    uint32 campaignStartTime = 1698796800; //  seconds since epoch
-    uint32 campaignEndTime = 1733011200; // seconds since epoch
-    uint32 maxCampaignRedemptions = 6500;
-
     function setUp() public virtual {
         // super.setUp();
 
@@ -114,9 +110,9 @@ contract LootboxTests is Test {
         CampaignParams memory params = CampaignParams({
             requirements: requirements,
             signer: address(0),
-            startTime: campaignStartTime,
-            endTime: campaignEndTime,
-            maxCampaignRedemptions: maxCampaignRedemptions,
+            startTime: uint32(block.timestamp),
+            endTime: uint32(block.timestamp) + uint32(1_000_000),
+            maxCampaignRedemptions: 6500,
             manager: msg.sender
         });
 
@@ -157,11 +153,10 @@ contract LootboxTests is Test {
         uint256[] memory tokenIds = new uint256[](1);
         tokenIds[0] = tokenId;
 
-        lootboxes.setPreapprovedAddress(address(certificates));
+        // lootboxes.setPreapprovedAddress(address(certificates));
 
         vm.prank(msg.sender);
 
-        // lootboxes.setApprovalForAll(address(certificates), true);
         certificates.redeem(tokenIds, msg.sender, data);
 
         vm.expectRevert(); // try redeeming again and expect revert
