@@ -762,8 +762,8 @@ contract DeployAndConfigure1155Receive is Script, Test {
     }
 
     function setUpResourcesCampaigns(
-        address certificatesAddr,
-        address resourcesAddr
+        address resourcesAddr,
+        address certificatesAddr
     ) public {
         // Sets up all the resources campaigns
         setUpResourcesCampaign( // t1 lumber
@@ -865,8 +865,8 @@ contract DeployAndConfigure1155Receive is Script, Test {
     }
 
     function setUpCosmeticsCampaigns(
-        address certificatesAddr,
-        address cosmeticsAddr
+        address cosmeticsAddr,
+        address certificatesAddr
     ) public {
         setUpCosmeticsCampaign(certificatesAddr, cosmeticsAddr, traitValueHat1);
         setUpCosmeticsCampaign(certificatesAddr, cosmeticsAddr, traitValueHat2);
@@ -970,18 +970,17 @@ contract DeployAndConfigure1155Receive is Script, Test {
         // lootboxes.setPreapprovedAddress(certificatesAddr);
 
         // Arbitrum Goerli addresses (v2 deployment)
-        address shipsAddr = 0x343f8F27f060E8C38acd759b103D7f1FE9f035Bc;
-        address certificatesAddr = 0x9AB21513bf9c107CE53B6326500A1567C642c794;
-        address resourcesAddr = 0x19E6949Ee9f371bD12d7B15A0Ce0C6f3d16D2f5A;
+        address lootboxesAddr = 0x95A863f964534527f733e2fA1f4B09D7076A80ef;
+        address shipsAddr = 0xa38D0828B6a9432C6adfdA0557cD6378AfCeaE1B;
+        address certificatesAddr = 0x5e1a8f974642de67a43587a469b143f39444223d;
+        address resourcesAddr = 0x6fdb1978218A3f31dAF107875Ae25a930A1A1EF1;
+        address cosmeticsAddr = 0x479750c63C3243375A52115C0987c4f78B48c398;
         address wethAddr = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1; // https://arbiscan.io/address/0x82af49447d8a07e3bd95bd0d56f35241523fbab1
 
         // Used for on-chain, not locally
         // mintAndSetTraits(certificatesAddr);
 
-        // setUpCertificatesCampaign(lootboxesAddr, certificatesAddr);
-
-        // setUpResourcesCampaigns(certificatesAddr, resourcesAddr);
-        // setUpCosmeticsCampaigns(certificatesAddr, cosmeticsAddr);
+        setUpCertificatesCampaign(lootboxesAddr, certificatesAddr);
 
         // setUpShipCampaigns(
         //     shipsAddr,
@@ -989,6 +988,8 @@ contract DeployAndConfigure1155Receive is Script, Test {
         //     resourcesAddr,
         //     wethAddr
         // );
+        // setUpResourcesCampaigns(resourcesAddr, certificatesAddr);
+        // setUpCosmeticsCampaigns(cosmeticsAddr, certificatesAddr);
 
         // testLootboxRedeem(lootboxesAddr, certificatesAddr);
 
