@@ -92,13 +92,7 @@ contract ERC721ShipyardRedeemableMintable is
      */
     // solhint-disable-next-line comprehensive-interface
     function burn(uint256 tokenId) external {
-        // require(
-        //     _isApprovedOrOwner(msg.sender, tokenId) ||
-        //         msg.sender == _preapprovedAddress,
-        //     "ERC721: burn caller is not owner nor approved"
-        // );
-
-        _burn(tokenId);
+        _burn(msg.sender, tokenId);
     }
 
     // TODO: For testing
