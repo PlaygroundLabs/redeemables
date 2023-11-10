@@ -12,6 +12,7 @@ import {TestERC20} from "../test/utils/mocks/TestERC20.sol";
 import {ERC721ShipyardRedeemableMintable} from "../src/extensions/ERC721ShipyardRedeemableMintable.sol";
 import {ERC1155ShipyardRedeemableMintable} from "../src/extensions/ERC1155ShipyardRedeemableMintable.sol";
 import {ERC721ShipyardRedeemableMintableRentable} from "../src/extensions/ERC721ShipyardRedeemableMintableRentable.sol";
+import {ERC721SeaDropBurnablePreapproved} from "../src/extensions/ERC721SeaDropBurnablePreapproved.sol";
 
 contract CNCContractScript is Script, Test {
     address CNC_TREASURY = 0x2DC39C543028933ea5e45851Fa84ad8F95C4c1DE; // TODO: update me later
@@ -924,7 +925,7 @@ contract CNCContractScript is Script, Test {
         vm.startBroadcast();
 
         // Deploy the contracts
-        ERC721ShipyardRedeemableMintable lootboxes = new ERC721ShipyardRedeemableMintable(
+        ERC721SeaDropBurnablePreapproved lootboxes = new ERC721SeaDropBurnablePreapproved(
                 "Captain & Company - Clockwork Lootbox",
                 "CNC-CLBX"
             );

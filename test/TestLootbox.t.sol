@@ -11,10 +11,11 @@ import {BURN_ADDRESS} from "../src/lib/RedeemablesConstants.sol";
 import {CNCContractScript} from "../script/CNC.s.sol";
 import {Test} from "forge-std/Test.sol";
 import {console} from "forge-std/console.sol";
+import {ERC721SeaDropBurnablePreapproved} from "../src/extensions/ERC721SeaDropBurnablePreapproved.sol";
 
 // contract ERC7498_SimpleRedeem is BaseRedeemablesTest, CNCContractScript {
 contract LootboxTests is Test {
-    ERC721ShipyardRedeemableMintable lootboxes;
+    ERC721SeaDropBurnablePreapproved lootboxes;
     ERC1155ShipyardRedeemableMintable certificates;
     ERC1155ShipyardRedeemableMintable resources;
     ERC721ShipyardRedeemableMintableRentable ships;
@@ -23,7 +24,7 @@ contract LootboxTests is Test {
     function setUp() public virtual {
         // super.setUp();
 
-        lootboxes = new ERC721ShipyardRedeemableMintable(
+        lootboxes = new ERC721SeaDropBurnablePreapproved(
             "Captain & Company - Clockwork Lootbox",
             "CNC-CLBX"
         );
@@ -128,9 +129,9 @@ contract LootboxTests is Test {
 
         // mint the user a lootbox
         uint campaignId = 1;
-        uint tokenId = 3;
+        uint tokenId = 1;
 
-        // lootboxes.mint(msg.sender, tokenId);
+        lootboxes.mint(msg.sender, tokenId);
 
         assertEq(lootboxes.ownerOf(tokenId), msg.sender); // confirm they have the lootbox
         assertEq(certificates.balanceOf(msg.sender, 1), 0);
@@ -175,6 +176,10 @@ contract LootboxTests is Test {
 
         // // confirm they no longer have the lootbox
         assertEq(lootboxes.balanceOf(msg.sender), 0);
+
+        vm.expectRevert(); // TokenDoesNotExist
+        lootboxes.ownerOf(tokenId);
+
         vm.stopPrank();
     }
 
@@ -190,8 +195,8 @@ contract LootboxTests is Test {
     }
 
     function testMint() public {
-        // lootboxes.mint(msg.sender, 1);
-        // lootboxes.mint(address(0xABCD), 3);
+        lootboxes.mint(msg.sender, 1);
+        lootboxes.mint(address(0xABCD), 3);
 
         assertEq(lootboxes.ownerOf(1), msg.sender);
         assertEq(lootboxes.ownerOf(3), address(0xABCD));
@@ -201,7 +206,7 @@ contract LootboxTests is Test {
         address addr1 = address(0xDCBA);
         address addr2 = address(0xABCD);
 
-        // lootboxes.mint(addr1, 1);
+        lootboxes.mint(addr1, 1);
 
         vm.expectRevert();
         lootboxes.burn(100); // Revert because token does not exist
@@ -209,7 +214,7 @@ contract LootboxTests is Test {
         vm.startPrank(addr2); // https://book.getfoundry.sh/cheatcodes/prank
 
         vm.expectRevert();
-        // lootboxes.mint(addr2, 2);
+        lootboxes.mint(addr2, 2);
 
         vm.expectRevert();
         lootboxes.burn(1); // THIS SHOULD REVERT (but isn't)
@@ -224,7 +229,7 @@ contract LootboxTests is Test {
 
     //     assertEq(ships.userOf(1), address(0));
 
-    //     ships.mint(addr1, 2);
+    // ships.mint(addr1, 2);
     //     uint64 expires = 2000000000;
     //     ships.setUser(2, addr2, expires);
     //     assertEq(ships.userOf(2), addr2);
