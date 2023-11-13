@@ -334,13 +334,16 @@ contract CNCContractScript is Script, Test {
             manager: msg.sender
         });
 
-        // uint campaignId = certificates.createCampaign(params, "ipfs://Qmd1svWLxdjRUCxDCv6i6MFZtcU6SY56mD6JM8Ds1ZrXPB");
-        uint campaignId = 1;
-        certificates.updateCampaign(
-            campaignId,
+        uint campaignId = certificates.createCampaign(
             params,
             "ipfs://Qmd1svWLxdjRUCxDCv6i6MFZtcU6SY56mD6JM8Ds1ZrXPB"
         );
+        // uint campaignId = 1;
+        // certificates.updateCampaign(
+        //     campaignId,
+        //     params,
+        //     "ipfs://Qmd1svWLxdjRUCxDCv6i6MFZtcU6SY56mD6JM8Ds1ZrXPB"
+        // );
         return campaignId;
     }
 
@@ -963,17 +966,21 @@ contract CNCContractScript is Script, Test {
         // lootboxes.setPreapprovedAddress(certificatesAddr);
 
         // Arbitrum Goerli addresses (v2 deployment)
-        address lootboxesAddr = 0x95A863f964534527f733e2fA1f4B09D7076A80ef;
+        // address lootboxesAddr = 0x95A863f964534527f733e2fA1f4B09D7076A80ef;
         // address shipsAddr = 0xa38D0828B6a9432C6adfdA0557cD6378AfCeaE1B;
-        address certificatesAddr = 0x5e1a8F974642dE67a43587A469b143f39444223d;
+        // address certificatesAddr = 0x5e1a8F974642dE67a43587A469b143f39444223d;
         // address resourcesAddr = 0x6fdb1978218A3f31dAF107875Ae25a930A1A1EF1;
         // address cosmeticsAddr = 0x479750c63C3243375A52115C0987c4f78B48c398;
         // address wethAddr = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1; // https://arbiscan.io/address/0x82af49447d8a07e3bd95bd0d56f35241523fbab1
 
-        // Used for on-chain, not locally
-        // mintAndSetTraits(certificatesAddr);
+        // Sepolia addresses
+        address certificatesAddr = 0xDa2eBf447B5a3d7d3C1201BF185e9c031765425e;
+        // address wethAddr = 0xD0dF82dE051244f04BfF3A8bB1f62E1cD39eED92; // Sepolia https://sepolia.etherscan.io/address/0xd0df82de051244f04bff3a8bb1f62e1cd39eed92
 
-        setUpCertificatesCampaign(lootboxesAddr, certificatesAddr);
+        // Used for on-chain, not locally
+        mintAndSetTraits(certificatesAddr);
+
+        // setUpCertificatesCampaign(lootboxesAddr, certificatesAddr);
 
         // setUpShipCampaigns(
         //     shipsAddr,
