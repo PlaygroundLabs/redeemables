@@ -12,17 +12,28 @@ import {CNCContractScript} from "../script/CNC.s.sol";
 import {Test} from "forge-std/Test.sol";
 import {console} from "forge-std/console.sol";
 import {ERC721SeaDropBurnablePreapproved} from "../src/extensions/ERC721SeaDropBurnablePreapproved.sol";
+import {TestERC20} from "../test/utils/mocks/TestERC20.sol";
 
-// contract ERC7498_SimpleRedeem is BaseRedeemablesTest, CNCContractScript {
 contract LootboxTests is Test {
     ERC721SeaDropBurnablePreapproved lootboxes;
     ERC1155ShipyardRedeemableMintable certificates;
     ERC1155ShipyardRedeemableMintable resources;
     ERC721ShipyardRedeemableMintableRentable ships;
     ERC721ShipyardRedeemableMintable cosmetics;
+    TestERC20 weth;
+    bytes32 traitKey = bytes32("certType");
+    bytes32 traitValueClockworkBlueprint = bytes32(uint256(3));
+    address CNC_TREASURY = address(0x4444);
+
+    uint32 t1LumberTokenId = 1;
+    uint32 t2LumberTokenId = 2;
+    uint32 t3LumberTokenId = 3;
+    uint32 t1OreTokenId = 4;
+    uint32 t2OreTokenId = 5;
+    uint32 t3OreTokenId = 6;
 
     function setUp() public virtual {
-        // super.setUp();
+        // super.setUp();  // if inheriting
 
         lootboxes = new ERC721SeaDropBurnablePreapproved(
             "Captain & Company - Clockwork Lootbox",
@@ -48,6 +59,9 @@ contract LootboxTests is Test {
             "Cosmetics",
             "CNS-COSM"
         );
+
+        weth = new TestERC20();
+
         lootboxes.setPreapprovedAddress(address(certificates));
     }
 
@@ -121,6 +135,84 @@ contract LootboxTests is Test {
         return campaignId;
     }
 
+    function setUpClockworkBlueprintCampaign() private returns (uint256) {
+        // Sets up the clockwork blueprint campaign for testing. This is a utility
+        OfferItem[] memory offer = new OfferItem[](1);
+        offer[0] = OfferItem({
+            itemType: ItemType.ERC721_WITH_CRITERIA,
+            token: address(ships),
+            identifierOrCriteria: 0,
+            startAmount: 1,
+            endAmount: 1
+        });
+
+        ConsiderationItem[] memory consideration = new ConsiderationItem[](4);
+        consideration[0] = ConsiderationItem({
+            itemType: ItemType.ERC1155_WITH_CRITERIA,
+            token: address(certificates),
+            identifierOrCriteria: 0,
+            startAmount: 1,
+            endAmount: 1,
+            recipient: payable(BURN_ADDRESS)
+        });
+
+        consideration[1] = ConsiderationItem({
+            itemType: ItemType.ERC1155,
+            token: address(resources),
+            identifierOrCriteria: t2LumberTokenId,
+            startAmount: 10,
+            endAmount: 10,
+            recipient: payable(CNC_TREASURY)
+        });
+
+        consideration[2] = ConsiderationItem({
+            itemType: ItemType.ERC1155,
+            token: address(resources),
+            identifierOrCriteria: t2OreTokenId,
+            startAmount: 10,
+            endAmount: 10,
+            recipient: payable(CNC_TREASURY)
+        });
+
+        consideration[3] = ConsiderationItem({
+            itemType: ItemType.ERC20,
+            token: address(weth),
+            identifierOrCriteria: 0,
+            startAmount: 5,
+            endAmount: 5,
+            recipient: payable(CNC_TREASURY)
+        });
+
+        TraitRedemption[] memory traitRedemptions = new TraitRedemption[](1);
+        traitRedemptions[0] = TraitRedemption({
+            substandard: 4, // an indicator integer
+            token: address(certificates),
+            traitKey: traitKey,
+            traitValue: traitValueClockworkBlueprint, // new trait value
+            substandardValue: traitValueClockworkBlueprint // required previous value
+        });
+
+        // Create the first campaign for blueprints
+        CampaignRequirements[] memory requirements = new CampaignRequirements[](
+            1
+        );
+        requirements[0].offer = offer;
+        requirements[0].consideration = consideration;
+        requirements[0].traitRedemptions = traitRedemptions;
+
+        CampaignParams memory params = CampaignParams({
+            requirements: requirements,
+            signer: address(0),
+            startTime: uint32(block.timestamp),
+            endTime: uint32(block.timestamp) + uint32(1_000_000),
+            maxCampaignRedemptions: 10_000,
+            manager: msg.sender
+        });
+
+        uint campaignId = ships.createCampaign(params, "ipfs://!");
+        return campaignId;
+    }
+
     function testLootboxCertificatesRedeem() public {
         address addr1 = address(0xDCBA);
         address addr2 = address(0xABCD);
@@ -187,6 +279,66 @@ contract LootboxTests is Test {
         lootboxes.ownerOf(lootboxTokenId);
 
         vm.stopPrank();
+    }
+
+    function testClockworkBlueprintRedeem() public {
+        // Tests that the clockwork lootbox blueprint can be redeemed
+        address addr2 = address(0xABCD);
+        address addr3 = address(0xCCCC);
+
+        uint256 campaignId = 1;
+        uint256 certTokenId = 1;
+
+        setUpClockworkBlueprintCampaign();
+
+        // First mint things
+        certificates.mint(addr2, certTokenId, 1);
+        certificates.setTrait(
+            certTokenId,
+            traitKey,
+            traitValueClockworkBlueprint
+        );
+        resources.mint(addr2, t2LumberTokenId, 20);
+        resources.mint(addr2, t2OreTokenId, 20);
+        weth.mint(addr2, 5);
+
+        // Set up data structures for redeem
+        uint256[] memory traitRedemptionTokenIds = new uint256[](1);
+        traitRedemptionTokenIds[0] = certTokenId;
+        bytes memory data = abi.encode(
+            campaignId,
+            0,
+            bytes32(0),
+            traitRedemptionTokenIds,
+            uint256(0),
+            bytes("")
+        );
+
+        uint256[] memory tokenIds = new uint256[](4);
+        tokenIds[0] = certTokenId;
+        tokenIds[1] = t2LumberTokenId;
+        tokenIds[2] = t2OreTokenId;
+        tokenIds[3] = 1;
+
+        // Redeem
+        vm.startPrank(addr2);
+
+        // TODO: see if we can remove the approvals with pre approves
+        certificates.setApprovalForAll(address(ships), true);
+        resources.setApprovalForAll(address(ships), true);
+        cosmetics.setApprovalForAll(address(ships), true);
+        weth.approve(address(ships), 999999999);
+
+        ships.redeem(tokenIds, addr2, data);
+        vm.stopPrank();
+
+        assertEq(ships.ownerOf(1), addr2);
+        assertEq(certificates.balanceOf(addr2, certTokenId), 0);
+        assertEq(resources.balanceOf(addr2, t2LumberTokenId), 10);
+        assertEq(resources.balanceOf(addr2, t2OreTokenId), 10);
+        assertEq(weth.balanceOf(addr2), 0);
+
+        // Verify post redeem state
     }
 
     function testMint() public {
@@ -287,7 +439,6 @@ contract LootboxTests is Test {
         traitValues[7] = bytes32(uint256(1));
         traitValues[8] = bytes32(uint256(1));
         traitValues[9] = bytes32(uint256(1));
-        bytes32 traitKey = bytes32("certType");
 
         certificates.batchSetTrait(tokenIds, traitKey, traitValues);
 
