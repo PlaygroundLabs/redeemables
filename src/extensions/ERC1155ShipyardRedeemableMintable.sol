@@ -60,14 +60,17 @@ contract ERC1155ShipyardRedeemableMintable is
         _mint(to, tokenId, amount, "");
     }
 
-    function mint2(
-        address to,
-        // uint256 tokenId,
-        uint256 amount
-    ) public onlyOwner {
-        // Used for the treasury mint
+    function mint2(address to, uint256 amount) public onlyOwner {
         ++_nextTokenId;
         _mint(to, _nextTokenId - 1, amount, "");
+    }
+
+    function mint3(address to, uint256 numTokens) public onlyOwner {
+        // Used for the treasury mint
+        for (uint i = 0; i < numTokens; i++) {
+            ++_nextTokenId;
+            _mint(to, _nextTokenId - 1, 1, "");
+        }
     }
 
     // TODO: make so only approved addresses? maybe that's internal

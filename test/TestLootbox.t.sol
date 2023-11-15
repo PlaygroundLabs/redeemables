@@ -214,13 +214,48 @@ contract LootboxTests is Test {
         lootboxes.mint(addr2, 2);
 
         vm.expectRevert();
-        lootboxes.burn(1); // THIS SHOULD REVERT (but isn't)
+        lootboxes.burn(1);
 
         vm.stopPrank();
     }
 
+    function testCertificateMint2() public {
+        address addr1 = address(0xDCBA);
+        address addr2 = address(0xABCD);
+
+        certificates.mint2(addr1, 2);
+        certificates.mint2(addr2, 3);
+        certificates.mint2(addr1, 1);
+
+        assertEq(certificates.balanceOf(addr1, 1), 2);
+        assertEq(certificates.balanceOf(addr1, 2), 0);
+        assertEq(certificates.balanceOf(addr1, 3), 1);
+
+        assertEq(certificates.balanceOf(addr2, 1), 0);
+        assertEq(certificates.balanceOf(addr2, 2), 3);
+        assertEq(certificates.balanceOf(addr2, 3), 0);
+    }
+
     function testCertificateMintBurnPermissions() public {
-        // TODO: write this
+        address addr1 = address(0xDCBA);
+        address addr2 = address(0xABCD);
+
+        certificates.mint(addr1, 1, 1);
+        certificates.mint2(addr1, 2);
+        certificates.burn(addr1, 1, 1);
+
+        vm.startPrank(addr2);
+
+        vm.expectRevert();
+        certificates.mint(addr2, 3, 1);
+
+        vm.expectRevert();
+        certificates.mint2(addr2, 4);
+
+        vm.expectRevert();
+        certificates.burn(addr2, 3, 1);
+
+        vm.stopPrank();
     }
 
     // TODO:  ships rental test. come back to this.
