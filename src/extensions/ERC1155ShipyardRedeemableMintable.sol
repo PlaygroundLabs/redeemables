@@ -51,7 +51,22 @@ contract ERC1155ShipyardRedeemableMintable is
             ERC1155ShipyardRedeemable.supportsInterface(interfaceId);
     }
 
-    // TODO: for testing
+    function batchSetTrait(
+        uint256[] memory tokenIds,
+        bytes32 traitKey,
+        bytes32[] memory traitValues
+    ) public onlyOwner {
+        // TODO: test me
+        require(
+            tokenIds.length == traitValues.length,
+            "tokenIds and traitValues values must have the same length"
+        );
+
+        for (uint i = 0; i < tokenIds.length; i++) {
+            setTrait(tokenIds[i], traitKey, traitValues[i]);
+        }
+    }
+
     function mint(
         address to,
         uint256 tokenId,
@@ -60,20 +75,18 @@ contract ERC1155ShipyardRedeemableMintable is
         _mint(to, tokenId, amount, "");
     }
 
-    function mint2(address to, uint256 amount) public onlyOwner {
-        ++_nextTokenId;
-        _mint(to, _nextTokenId - 1, amount, "");
-    }
-
-    function mint3(address to, uint256 numTokens) public onlyOwner {
-        // Used for the treasury mint
+    function adminMint(
+        address to,
+        uint256 numTokens,
+        uint256 amount
+    ) public onlyOwner {
         for (uint i = 0; i < numTokens; i++) {
             ++_nextTokenId;
-            _mint(to, _nextTokenId - 1, 1, "");
+            _mint(to, _nextTokenId - 1, amount, "");
         }
     }
 
-    // TODO: make so only approved addresses? maybe that's internal
+    // TODO: make sure that this works as needed, permissions, etc.
     function burn(address account, uint256 id, uint256 value) public {
         _burn(account, id, value);
     }

@@ -908,12 +908,23 @@ contract CNCContractScript is Script, Test {
         ERC1155ShipyardRedeemableMintable certificates = ERC1155ShipyardRedeemableMintable(
                 certificatesAddr
             );
-        for (uint i = 10; i < 60; i++) {
-            certificates.mint(msg.sender, i, 1); // certificate
-        }
+        // for (uint i = 10; i < 60; i++) {
+        //     certificates.mint(msg.sender, i, 1); // certificate
+        // }
 
-        for (uint i = 10; i < 60; i++) {
-            certificates.setTrait(i, traitKey, traitValueWraithGoldprint);
+        // for (uint i = 10; i < 60; i++) {
+        //     certificates.setTrait(i, traitKey, traitValueWraithGoldprint);
+        // }
+
+        for (uint i = 1; i < 5; i++) {
+            uint tokenIdBase = 100000 + (i * 100);
+            for (uint j = 1; j <= 19; j++) {
+                uint tokenId = tokenIdBase + j;
+                bytes32 traitValue = bytes32(j);
+
+                certificates.mint(msg.sender, tokenId, 1); // certificate
+                certificates.setTrait(tokenId, traitKey, traitValue);
+            }
         }
     }
 
@@ -974,11 +985,11 @@ contract CNCContractScript is Script, Test {
         // address wethAddr = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1; // https://arbiscan.io/address/0x82af49447d8a07e3bd95bd0d56f35241523fbab1
 
         // Sepolia addresses
-        address certificatesAddr = 0xDa2eBf447B5a3d7d3C1201BF185e9c031765425e;
+        // address certificatesAddr = 0xDa2eBf447B5a3d7d3C1201BF185e9c031765425e;
         // address wethAddr = 0xD0dF82dE051244f04BfF3A8bB1f62E1cD39eED92; // Sepolia https://sepolia.etherscan.io/address/0xd0df82de051244f04bff3a8bb1f62e1cd39eed92
 
         // Used for on-chain, not locally
-        mintAndSetTraits(certificatesAddr);
+        // mintAndSetTraits(certificatesAddr);
 
         // setUpCertificatesCampaign(lootboxesAddr, certificatesAddr);
 

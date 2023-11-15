@@ -132,9 +132,7 @@ contract LootboxTests is Test {
         uint lootboxTokenId = 1;
 
         // Mint certificates for the treasury mint
-        for (uint i = 0; i < certsInTreasuryMint; i++) {
-            certificates.mint2(addr3, 1);
-        }
+        certificates.adminMint(addr3, certsInTreasuryMint, 1);
 
         setUpCertificatesCampaign();
 
@@ -219,21 +217,26 @@ contract LootboxTests is Test {
         vm.stopPrank();
     }
 
-    function testCertificateMint2() public {
+    function testCertificateAdminMint() public {
         address addr1 = address(0xDCBA);
         address addr2 = address(0xABCD);
 
-        certificates.mint2(addr1, 2);
-        certificates.mint2(addr2, 3);
-        certificates.mint2(addr1, 1);
+        certificates.adminMint(addr1, 2, 1);
+        certificates.adminMint(addr2, 3, 2);
 
-        assertEq(certificates.balanceOf(addr1, 1), 2);
-        assertEq(certificates.balanceOf(addr1, 2), 0);
-        assertEq(certificates.balanceOf(addr1, 3), 1);
+        assertEq(certificates.balanceOf(addr1, 1), 1);
+        assertEq(certificates.balanceOf(addr1, 2), 1);
+        assertEq(certificates.balanceOf(addr1, 3), 0);
+        assertEq(certificates.balanceOf(addr1, 4), 0);
+        assertEq(certificates.balanceOf(addr1, 5), 0);
+        assertEq(certificates.balanceOf(addr1, 6), 0);
 
         assertEq(certificates.balanceOf(addr2, 1), 0);
-        assertEq(certificates.balanceOf(addr2, 2), 3);
-        assertEq(certificates.balanceOf(addr2, 3), 0);
+        assertEq(certificates.balanceOf(addr2, 2), 0);
+        assertEq(certificates.balanceOf(addr2, 3), 2);
+        assertEq(certificates.balanceOf(addr2, 4), 2);
+        assertEq(certificates.balanceOf(addr2, 5), 2);
+        assertEq(certificates.balanceOf(addr2, 6), 0);
     }
 
     function testCertificateMintBurnPermissions() public {
@@ -241,7 +244,7 @@ contract LootboxTests is Test {
         address addr2 = address(0xABCD);
 
         certificates.mint(addr1, 1, 1);
-        certificates.mint2(addr1, 2);
+        certificates.adminMint(addr1, 2, 1);
         certificates.burn(addr1, 1, 1);
 
         vm.startPrank(addr2);
@@ -250,7 +253,7 @@ contract LootboxTests is Test {
         certificates.mint(addr2, 3, 1);
 
         vm.expectRevert();
-        certificates.mint2(addr2, 4);
+        certificates.adminMint(addr2, 4, 1);
 
         vm.expectRevert();
         certificates.burn(addr2, 3, 1);
