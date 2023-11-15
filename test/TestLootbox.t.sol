@@ -261,6 +261,58 @@ contract LootboxTests is Test {
         vm.stopPrank();
     }
 
+    function testBatchSetTrait() public {
+        address addr1 = address(0xDCBA);
+
+        uint256[] memory tokenIds = new uint256[](10);
+        tokenIds[0] = 1;
+        tokenIds[1] = 2;
+        tokenIds[2] = 3;
+        tokenIds[3] = 4;
+        tokenIds[4] = 5;
+        tokenIds[5] = 6;
+        tokenIds[6] = 7;
+        tokenIds[7] = 8;
+        tokenIds[8] = 9;
+        tokenIds[9] = 10;
+
+        bytes32[] memory traitValues = new bytes32[](10);
+        traitValues[0] = bytes32(uint256(1));
+        traitValues[1] = bytes32(uint256(1));
+        traitValues[2] = bytes32(uint256(1));
+        traitValues[3] = bytes32(uint256(2));
+        traitValues[4] = bytes32(uint256(2));
+        traitValues[5] = bytes32(uint256(101));
+        traitValues[6] = bytes32(uint256(1));
+        traitValues[7] = bytes32(uint256(1));
+        traitValues[8] = bytes32(uint256(1));
+        traitValues[9] = bytes32(uint256(1));
+        bytes32 traitKey = bytes32("certType");
+
+        certificates.batchSetTrait(tokenIds, traitKey, traitValues);
+
+        for (uint i = 0; i < 10; i++) {
+            assertEq(
+                certificates.getTraitValue(tokenIds[i], traitKey),
+                traitValues[i]
+            );
+        }
+
+        // Verify that reverts on differents sized inputs
+        uint256[] memory tokenIds2 = new uint256[](3);
+        bytes32[] memory traitValues2 = new bytes32[](2);
+        vm.expectRevert();
+        certificates.batchSetTrait(tokenIds2, traitKey, traitValues2);
+
+        // Verify that non-owner can't call batchSetTrait
+        vm.startPrank(addr1);
+
+        vm.expectRevert();
+        certificates.batchSetTrait(tokenIds, traitKey, traitValues);
+
+        vm.stopPrank();
+    }
+
     // TODO:  ships rental test. come back to this.
     // function testShipsRentals() public {
     //     address addr1 = address(0xDCBA);
