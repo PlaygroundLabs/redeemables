@@ -124,16 +124,24 @@ contract LootboxTests is Test {
     function testLootboxCertificatesRedeem() public {
         address addr1 = address(0xDCBA);
         address addr2 = address(0xABCD);
+        address addr3 = address(0xCCCC);
+
+        uint certsInTreasuryMint = 1000;
+        uint redeemCertTokenId = certsInTreasuryMint + 1;
+        uint campaignId = 1;
+        uint lootboxTokenId = 1;
+
+        // Mint certificates for the treasury mint
+        for (uint i = 0; i < certsInTreasuryMint; i++) {
+            certificates.mint2(addr3, 1);
+        }
 
         setUpCertificatesCampaign();
 
         // mint the user a lootbox
-        uint campaignId = 1;
-        uint tokenId = 1;
+        lootboxes.mint(msg.sender, lootboxTokenId);
 
-        lootboxes.mint(msg.sender, tokenId);
-
-        assertEq(lootboxes.ownerOf(tokenId), msg.sender); // confirm they have the lootbox
+        assertEq(lootboxes.ownerOf(lootboxTokenId), msg.sender); // confirm they have the lootbox
         assertEq(certificates.balanceOf(msg.sender, 1), 0);
         assertEq(certificates.balanceOf(msg.sender, 2), 0);
         assertEq(certificates.balanceOf(msg.sender, 3), 0);
@@ -152,7 +160,7 @@ contract LootboxTests is Test {
         );
 
         uint256[] memory tokenIds = new uint256[](1);
-        tokenIds[0] = tokenId;
+        tokenIds[0] = lootboxTokenId;
 
         // Verify that redeeming as a random user reverts
         vm.prank(address(0x1234));
@@ -166,32 +174,21 @@ contract LootboxTests is Test {
         vm.expectRevert(); // try redeeming again and expect revert
         certificates.redeem(tokenIds, msg.sender, data);
 
-        // // confirm msg.sender got the right number of certs
-        assertEq(certificates.balanceOf(msg.sender, 1), 1);
-        assertEq(certificates.balanceOf(msg.sender, 2), 1);
-        assertEq(certificates.balanceOf(msg.sender, 3), 1);
-        assertEq(certificates.balanceOf(msg.sender, 4), 1);
-        assertEq(certificates.balanceOf(msg.sender, 5), 1);
-        assertEq(certificates.balanceOf(msg.sender, 6), 0);
+        // confirm msg.sender got the right number of certs
+        assertEq(certificates.balanceOf(msg.sender, redeemCertTokenId + 0), 1);
+        assertEq(certificates.balanceOf(msg.sender, redeemCertTokenId + 1), 1);
+        assertEq(certificates.balanceOf(msg.sender, redeemCertTokenId + 2), 1);
+        assertEq(certificates.balanceOf(msg.sender, redeemCertTokenId + 3), 1);
+        assertEq(certificates.balanceOf(msg.sender, redeemCertTokenId + 4), 1);
+        assertEq(certificates.balanceOf(msg.sender, redeemCertTokenId + 5), 0);
 
         // // confirm they no longer have the lootbox
         assertEq(lootboxes.balanceOf(msg.sender), 0);
 
         vm.expectRevert(); // TokenDoesNotExist
-        lootboxes.ownerOf(tokenId);
+        lootboxes.ownerOf(lootboxTokenId);
 
         vm.stopPrank();
-    }
-
-    function testTesting() public {
-        // A helper test of things that can be done in tests and how to do them
-
-        // https://book.getfoundry.sh/reference/forge-std/console-log
-        console.logAddress(msg.sender);
-
-        // https://book.getfoundry.sh/cheatcodes/expect-revert?highlight=expectRevert
-        vm.expectRevert(bytes("NOT_AUTHORIZED"));
-        revert("NOT_AUTHORIZED");
     }
 
     function testMint() public {
@@ -222,6 +219,10 @@ contract LootboxTests is Test {
         vm.stopPrank();
     }
 
+    function testCertificateMintBurnPermissions() public {
+        // TODO: write this
+    }
+
     // TODO:  ships rental test. come back to this.
     // function testShipsRentals() public {
     //     address addr1 = address(0xDCBA);
@@ -234,4 +235,15 @@ contract LootboxTests is Test {
     //     ships.setUser(2, addr2, expires);
     //     assertEq(ships.userOf(2), addr2);
     // }
+
+    function testTesting() public {
+        // A helper test of things that can be done in tests and how to do them
+
+        // https://book.getfoundry.sh/reference/forge-std/console-log
+        console.logAddress(msg.sender);
+
+        // https://book.getfoundry.sh/cheatcodes/expect-revert?highlight=expectRevert
+        vm.expectRevert(bytes("NOT_AUTHORIZED"));
+        revert("NOT_AUTHORIZED");
+    }
 }
