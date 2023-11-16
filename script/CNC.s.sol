@@ -5,7 +5,7 @@ import {Script} from "forge-std/Script.sol";
 import {Test} from "forge-std/Test.sol";
 import {ItemType} from "seaport-types/src/lib/ConsiderationEnums.sol";
 import {OfferItem, ConsiderationItem} from "seaport-types/src/lib/ConsiderationStructs.sol";
-import {CampaignParams, CampaignRequirements, TraitRedemption} from "../src/lib/RedeemablesStructs.sol";
+import {Campaign, CampaignParams, CampaignRequirements, TraitRedemption} from "../src/lib/RedeemablesStructs.sol";
 import {BURN_ADDRESS} from "../src/lib/RedeemablesConstants.sol";
 
 import {TestERC20} from "../test/utils/mocks/TestERC20.sol";
@@ -326,7 +326,6 @@ contract CNCContractScript is Script, Test {
         requirements[0].consideration = consideration;
 
         CampaignParams memory params = CampaignParams({
-            requirements: requirements,
             signer: address(0),
             startTime: campaignStartTime,
             endTime: campaignEndTime,
@@ -334,8 +333,13 @@ contract CNCContractScript is Script, Test {
             manager: msg.sender
         });
 
+        Campaign memory campaign = Campaign({
+            params: params,
+            requirements: requirements
+        });
+
         uint campaignId = certificates.createCampaign(
-            params,
+            campaign,
             "ipfs://Qmd1svWLxdjRUCxDCv6i6MFZtcU6SY56mD6JM8Ds1ZrXPB"
         );
         // uint campaignId = 1;
@@ -421,7 +425,6 @@ contract CNCContractScript is Script, Test {
         requirements[0].traitRedemptions = traitRedemptions;
 
         CampaignParams memory params = CampaignParams({
-            requirements: requirements,
             signer: address(0),
             startTime: campaignStartTime,
             endTime: campaignEndTime,
@@ -429,8 +432,13 @@ contract CNCContractScript is Script, Test {
             manager: msg.sender
         });
 
+        Campaign memory campaign = Campaign({
+            params: params,
+            requirements: requirements
+        });
+
         uint campaignId = ships.createCampaign(
-            params,
+            campaign,
             "ipfs://Qmd1svWLxdjRUCxDCv6i6MFZtcU6SY56mD6JM8Ds1ZrXPB"
         );
 
@@ -486,8 +494,8 @@ contract CNCContractScript is Script, Test {
         requirements[0].offer = offer;
         requirements[0].consideration = consideration;
         requirements[0].traitRedemptions = traitRedemptions;
+
         CampaignParams memory params = CampaignParams({
-            requirements: requirements,
             signer: address(0),
             startTime: campaignStartTime,
             endTime: campaignEndTime,
@@ -495,8 +503,13 @@ contract CNCContractScript is Script, Test {
             manager: msg.sender
         });
 
+        Campaign memory campaign = Campaign({
+            params: params,
+            requirements: requirements
+        });
+
         uint campaignId = ships.createCampaign(
-            params,
+            campaign,
             "ipfs://QmQjubc6guHReNW5Es5ZrgDtJRwXk2Aia7BkVoLJGaCRqP"
         );
 
@@ -582,7 +595,6 @@ contract CNCContractScript is Script, Test {
         requirements[0].traitRedemptions = traitRedemptions;
 
         CampaignParams memory params = CampaignParams({
-            requirements: requirements,
             signer: address(0),
             startTime: campaignStartTime,
             endTime: campaignEndTime,
@@ -590,8 +602,13 @@ contract CNCContractScript is Script, Test {
             manager: msg.sender
         });
 
+        Campaign memory campaign = Campaign({
+            params: params,
+            requirements: requirements
+        });
+
         uint campaignId = ships.createCampaign(
-            params,
+            campaign,
             "ipfs://QmQjubc6guHReNW5Es5ZrgDtJRwXk2Aia7BkVoLJGaCRqP"
         );
         return campaignId;
@@ -647,7 +664,6 @@ contract CNCContractScript is Script, Test {
         requirements[0].consideration = consideration;
         requirements[0].traitRedemptions = traitRedemptions;
         CampaignParams memory params = CampaignParams({
-            requirements: requirements,
             signer: address(0),
             startTime: campaignStartTime,
             endTime: campaignEndTime,
@@ -655,8 +671,13 @@ contract CNCContractScript is Script, Test {
             manager: msg.sender
         });
 
+        Campaign memory campaign = Campaign({
+            params: params,
+            requirements: requirements
+        });
+
         uint campaignId = ships.createCampaign(
-            params,
+            campaign,
             "ipfs://QmQjubc6guHReNW5Es5ZrgDtJRwXk2Aia7BkVoLJGaCRqP"
         );
 
@@ -747,7 +768,6 @@ contract CNCContractScript is Script, Test {
         requirements[0].consideration = consideration;
         requirements[0].traitRedemptions = traitRedemptions;
         CampaignParams memory params = CampaignParams({
-            requirements: requirements,
             signer: address(0),
             startTime: campaignStartTime,
             endTime: campaignEndTime,
@@ -755,8 +775,13 @@ contract CNCContractScript is Script, Test {
             manager: msg.sender
         });
 
+        Campaign memory campaign = Campaign({
+            params: params,
+            requirements: requirements
+        });
+
         uint256 campaignId = ERC1155ShipyardRedeemableMintable(resourcesAddr)
-            .createCampaign(params, "uri://");
+            .createCampaign(campaign, "uri://");
         return campaignId;
     }
 
@@ -850,7 +875,6 @@ contract CNCContractScript is Script, Test {
         requirements[0].consideration = consideration;
         requirements[0].traitRedemptions = traitRedemptions;
         CampaignParams memory params = CampaignParams({
-            requirements: requirements,
             signer: address(0),
             startTime: campaignStartTime,
             endTime: campaignEndTime,
@@ -858,8 +882,13 @@ contract CNCContractScript is Script, Test {
             manager: msg.sender
         });
 
+        Campaign memory campaign = Campaign({
+            params: params,
+            requirements: requirements
+        });
+
         uint256 campaignId = ERC721ShipyardRedeemableMintable(cosmeticsAddr)
-            .createCampaign(params, "uri://");
+            .createCampaign(campaign, "uri://");
         return campaignId;
     }
 
