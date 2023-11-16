@@ -16,8 +16,8 @@ contract ERC1155ShipyardRedeemableMintable is
     ERC1155ShipyardRedeemable,
     IRedemptionMintable
 {
-    /// @dev Revert if the sender of mintRedemption is not this contract.
-    error InvalidSender();
+    /// @dev The ERC-7498 redeemables contracts.
+    address[] internal _erc7498RedeemablesContracts;
 
     /// @dev The next token id to mint. Each token will have a supply of 1.
     uint256 _nextTokenId = 1;
@@ -33,9 +33,8 @@ contract ERC1155ShipyardRedeemableMintable is
         ConsiderationItem[] calldata /* consideration */,
         TraitRedemption[] calldata /* traitRedemptions */
     ) external {
-        if (msg.sender != address(this)) {
-            revert InvalidSender();
-        }
+        // Require that msg.sender is valid.
+        _requireValidRedeemablesCaller();
 
         // Increment nextTokenId first so more of the same token id cannot be minted through reentrancy.
         ++_nextTokenId;
@@ -56,7 +55,6 @@ contract ERC1155ShipyardRedeemableMintable is
         bytes32 traitKey,
         bytes32[] memory traitValues
     ) public onlyOwner {
-        // TODO: test me
         require(
             tokenIds.length == traitValues.length,
             "tokenIds and traitValues values must have the same length"
@@ -89,5 +87,34 @@ contract ERC1155ShipyardRedeemableMintable is
     // TODO: make sure that this works as needed, permissions, etc.
     function burn(address account, uint256 id, uint256 value) public {
         _burn(account, id, value);
+    }
+
+    function getRedeemablesContracts()
+        external
+        view
+        returns (address[] memory)
+    {
+        return _erc7498RedeemablesContracts;
+    }
+
+    function setRedeemablesContracts(
+        address[] calldata redeemablesContracts
+    ) external onlyOwner {
+        _erc7498RedeemablesContracts = redeemablesContracts;
+    }
+
+    function _requireValidRedeemablesCaller() internal view {
+        // Allow the contract to call itself.
+        if (msg.sender == address(this)) return;
+
+        bool validCaller;
+        for (uint256 i; i < _erc7498RedeemablesContracts.length; i++) {
+            if (msg.sender == _erc7498RedeemablesContracts[i]) {
+                validCaller = true;
+            }
+        }
+        if (!validCaller) {
+            revert InvalidCaller(msg.sender);
+        }
     }
 }
