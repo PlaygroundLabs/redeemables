@@ -234,7 +234,6 @@ contract LootboxTests is Test {
 
         setUpCertificatesCampaign();
 
-        // mint the user a lootbox
         lootboxes.mint(msg.sender, lootboxTokenId);
 
         assertEq(lootboxes.ownerOf(lootboxTokenId), msg.sender); // confirm they have the lootbox
@@ -278,7 +277,7 @@ contract LootboxTests is Test {
         assertEq(certificates.balanceOf(msg.sender, redeemCertTokenId + 4), 1);
         assertEq(certificates.balanceOf(msg.sender, redeemCertTokenId + 5), 0);
 
-        // // confirm they no longer have the lootbox
+        // confirm they no longer have the lootbox
         assertEq(lootboxes.balanceOf(msg.sender), 0);
 
         vm.expectRevert(); // TokenDoesNotExist
