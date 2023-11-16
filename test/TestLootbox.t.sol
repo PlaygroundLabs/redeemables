@@ -3,12 +3,11 @@ pragma solidity ^0.8.19;
 import {ERC721ShipyardRedeemableMintable} from "../src/extensions/ERC721ShipyardRedeemableMintable.sol";
 import {ItemType} from "seaport-types/src/lib/ConsiderationEnums.sol";
 import {ERC721ShipyardRedeemableMintableRentable} from "../src/extensions/ERC721ShipyardRedeemableMintableRentable.sol";
-import {CampaignParams, CampaignRequirements, TraitRedemption} from "../src/lib/RedeemablesStructs.sol";
+import {Campaign, CampaignParams, CampaignRequirements, TraitRedemption} from "../src/lib/RedeemablesStructs.sol";
 import {OfferItem, ConsiderationItem} from "seaport-types/src/lib/ConsiderationStructs.sol";
 import {ERC1155ShipyardRedeemableMintable} from "../src/extensions/ERC1155ShipyardRedeemableMintable.sol";
 import {BaseRedeemablesTest} from "./utils/BaseRedeemablesTest.sol";
 import {BURN_ADDRESS} from "../src/lib/RedeemablesConstants.sol";
-import {CNCContractScript} from "../script/CNC.s.sol";
 import {Test} from "forge-std/Test.sol";
 import {console} from "forge-std/console.sol";
 import {ERC721SeaDropBurnablePreapproved} from "../src/extensions/ERC721SeaDropBurnablePreapproved.sol";
@@ -123,15 +122,19 @@ contract LootboxTests is Test {
         requirements[0].consideration = consideration;
 
         CampaignParams memory params = CampaignParams({
-            requirements: requirements,
-            signer: address(0),
             startTime: uint32(block.timestamp),
             endTime: uint32(block.timestamp) + uint32(1_000_000),
-            maxCampaignRedemptions: 6500,
-            manager: msg.sender
+            maxCampaignRedemptions: 6_500,
+            manager: msg.sender,
+            signer: address(0)
         });
 
-        uint campaignId = certificates.createCampaign(params, "uri://");
+        Campaign memory campaign = Campaign({
+            params: params,
+            requirements: requirements
+        });
+
+        uint campaignId = certificates.createCampaign(campaign, "uri://");
         return campaignId;
     }
 
@@ -201,15 +204,18 @@ contract LootboxTests is Test {
         requirements[0].traitRedemptions = traitRedemptions;
 
         CampaignParams memory params = CampaignParams({
-            requirements: requirements,
             signer: address(0),
             startTime: uint32(block.timestamp),
             endTime: uint32(block.timestamp) + uint32(1_000_000),
             maxCampaignRedemptions: 10_000,
             manager: msg.sender
         });
+        Campaign memory campaign = Campaign({
+            params: params,
+            requirements: requirements
+        });
 
-        uint campaignId = ships.createCampaign(params, "ipfs://!");
+        uint campaignId = ships.createCampaign(campaign, "ipfs://!");
         return campaignId;
     }
 
