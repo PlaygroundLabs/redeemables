@@ -6,15 +6,14 @@ import {ERC721ShipyardRedeemableMintableRentable} from "../src/extensions/ERC721
 import {Campaign, CampaignParams, CampaignRequirements, TraitRedemption} from "../src/lib/RedeemablesStructs.sol";
 import {OfferItem, ConsiderationItem} from "seaport-types/src/lib/ConsiderationStructs.sol";
 import {ERC1155ShipyardRedeemableMintable} from "../src/extensions/ERC1155ShipyardRedeemableMintable.sol";
+import {TestERC20} from "../test/utils/mocks/TestERC20.sol";
 import {BaseRedeemablesTest} from "./utils/BaseRedeemablesTest.sol";
 import {BURN_ADDRESS} from "../src/lib/RedeemablesConstants.sol";
 import {Test} from "forge-std/Test.sol";
 import {console} from "forge-std/console.sol";
-import {ERC721SeaDropBurnablePreapproved} from "../src/extensions/ERC721SeaDropBurnablePreapproved.sol";
-import {TestERC20} from "../test/utils/mocks/TestERC20.sol";
 
 contract LootboxTests is Test {
-    ERC721SeaDropBurnablePreapproved lootboxes;
+    ERC721ShipyardRedeemableMintableRentable lootboxes;
     ERC1155ShipyardRedeemableMintable certificates;
     ERC1155ShipyardRedeemableMintable resources;
     ERC721ShipyardRedeemableMintableRentable ships;
@@ -22,6 +21,7 @@ contract LootboxTests is Test {
     TestERC20 weth;
     bytes32 traitKey = bytes32("certType");
     bytes32 traitValueClockworkBlueprint = bytes32(uint256(3));
+    bytes32 traitValueT1Lumber = bytes32(uint256(5));
     address CNC_TREASURY = address(0x4444);
 
     uint32 t1LumberTokenId = 1;
@@ -34,7 +34,7 @@ contract LootboxTests is Test {
     function setUp() public virtual {
         // super.setUp();  // if inheriting
 
-        lootboxes = new ERC721SeaDropBurnablePreapproved(
+        lootboxes = new ERC721ShipyardRedeemableMintableRentable(
             "Captain & Company - Clockwork Lootbox",
             "CNC-CLBX"
         );
@@ -342,8 +342,100 @@ contract LootboxTests is Test {
         assertEq(resources.balanceOf(addr2, t2LumberTokenId), 10);
         assertEq(resources.balanceOf(addr2, t2OreTokenId), 10);
         assertEq(weth.balanceOf(addr2), 0);
+    }
+
+    function setUpResourcesCampaign() private returns (uint256) {
+        OfferItem[] memory offer = new OfferItem[](1);
+        offer[0] = OfferItem({
+            itemType: ItemType.ERC1155_WITH_CRITERIA,
+            token: address(resources),
+            identifierOrCriteria: t1LumberTokenId,
+            startAmount: 10_000,
+            endAmount: 10_000
+        });
+
+        ConsiderationItem[] memory consideration = new ConsiderationItem[](1);
+        consideration[0] = ConsiderationItem({
+            itemType: ItemType.ERC1155_WITH_CRITERIA,
+            token: address(certificates),
+            identifierOrCriteria: 0,
+            startAmount: 1,
+            endAmount: 1,
+            recipient: payable(BURN_ADDRESS)
+        });
+
+        TraitRedemption[] memory traitRedemptions = new TraitRedemption[](1);
+        traitRedemptions[0] = TraitRedemption({
+            substandard: 4, // an indicator integer
+            token: address(certificates),
+            traitKey: traitKey,
+            traitValue: traitValueT1Lumber, // new trait value
+            substandardValue: traitValueT1Lumber // required previous value
+        });
+
+        CampaignRequirements[] memory requirements = new CampaignRequirements[](
+            1
+        );
+        requirements[0].offer = offer;
+        requirements[0].consideration = consideration;
+        requirements[0].traitRedemptions = traitRedemptions;
+
+        CampaignParams memory params = CampaignParams({
+            signer: address(0),
+            startTime: uint32(block.timestamp),
+            endTime: uint32(block.timestamp) + uint32(1_000_000),
+            maxCampaignRedemptions: 10_000,
+            manager: msg.sender
+        });
+        Campaign memory campaign = Campaign({
+            params: params,
+            requirements: requirements
+        });
+
+        uint campaignId = resources.createCampaign(campaign, "ipfs://!");
+        return campaignId;
+    }
+
+    function testResourceRedeem() public {
+        address addr2 = address(0xABCD);
+
+        uint256 campaignId = 1;
+        uint256 certTokenId = 1;
+
+        setUpResourcesCampaign();
+
+        // // First mint things
+        certificates.mint(addr2, certTokenId, 1);
+        certificates.setTrait(certTokenId, traitKey, traitValueT1Lumber);
+
+        // // Set up data structures for redeem
+        uint256[] memory traitRedemptionTokenIds = new uint256[](1);
+        traitRedemptionTokenIds[0] = certTokenId;
+        bytes memory data = abi.encode(
+            campaignId,
+            0,
+            bytes32(0),
+            traitRedemptionTokenIds,
+            uint256(0),
+            bytes("")
+        );
+
+        uint256[] memory tokenIds = new uint256[](1);
+        tokenIds[0] = certTokenId;
+
+        // Redeem
+        vm.startPrank(addr2);
+
+        certificates.setApprovalForAll(address(resources), true); // TODO: manage through pre approvals
+
+        assertEq(resources.balanceOf(addr2, t1LumberTokenId), 10_000);
+        resources.redeem(tokenIds, addr2, data);
 
         // Verify post redeem state
+        assertEq(resources.balanceOf(addr2, t1LumberTokenId), 10_000);
+        // assertEq(certificates.balanceOf(addr2, certTokenId), 0);
+
+        vm.stopPrank();
     }
 
     function testMint() public {

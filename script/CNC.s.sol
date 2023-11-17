@@ -12,7 +12,6 @@ import {TestERC20} from "../test/utils/mocks/TestERC20.sol";
 import {ERC721ShipyardRedeemableMintable} from "../src/extensions/ERC721ShipyardRedeemableMintable.sol";
 import {ERC1155ShipyardRedeemableMintable} from "../src/extensions/ERC1155ShipyardRedeemableMintable.sol";
 import {ERC721ShipyardRedeemableMintableRentable} from "../src/extensions/ERC721ShipyardRedeemableMintableRentable.sol";
-import {ERC721SeaDropBurnablePreapproved} from "../src/extensions/ERC721SeaDropBurnablePreapproved.sol";
 
 contract CNCContractScript is Script, Test {
     address CNC_TREASURY = 0x2DC39C543028933ea5e45851Fa84ad8F95C4c1DE; // TODO: update me later
@@ -968,7 +967,7 @@ contract CNCContractScript is Script, Test {
         vm.startBroadcast();
 
         // Deploy the contracts
-        // ERC721SeaDropBurnablePreapproved lootboxes = new ERC721SeaDropBurnablePreapproved(
+        // ERC721ShipyardRedeemableMintableRentable lootboxes = new ERC721ShipyardRedeemableMintableRentable(
         //         "Captain & Company - Clockwork Lootbox",
         //         "CNC-CLBX"
         //     );
@@ -1001,9 +1000,6 @@ contract CNCContractScript is Script, Test {
         // address resourcesAddr = address(resources);
         // address cosmeticsAddr = address(cosmetics);
         // address wethAddr = address(weth);
-
-        // Set up pre-approves
-        // lootboxes.setPreapprovedAddress(certificatesAddr);
 
         // Arbitrum Goerli addresses (v2 deployment)
         // address lootboxesAddr = 0x95A863f964534527f733e2fA1f4B09D7076A80ef;

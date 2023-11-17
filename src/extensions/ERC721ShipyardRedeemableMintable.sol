@@ -12,7 +12,10 @@ import {ERC721ShipyardRedeemable} from "../ERC721ShipyardRedeemable.sol";
 import {IRedemptionMintable} from "../interfaces/IRedemptionMintable.sol";
 import {TraitRedemption} from "../lib/RedeemablesStructs.sol";
 
-contract ERC721ShipyardRedeemableMintable is ERC721ShipyardRedeemable, IRedemptionMintable {
+contract ERC721ShipyardRedeemableMintable is
+    ERC721ShipyardRedeemable,
+    IRedemptionMintable
+{
     /// @dev The ERC-7498 redeemables contracts.
     address[] internal _erc7498RedeemablesContracts;
 
@@ -46,11 +49,17 @@ contract ERC721ShipyardRedeemableMintable is ERC721ShipyardRedeemable, IRedempti
         _mint(recipient, _nextTokenId - 1);
     }
 
-    function getRedeemablesContracts() external view returns (address[] memory) {
+    function getRedeemablesContracts()
+        external
+        view
+        returns (address[] memory)
+    {
         return _erc7498RedeemablesContracts;
     }
 
-    function setRedeemablesContracts(address[] calldata redeemablesContracts) external onlyOwner {
+    function setRedeemablesContracts(
+        address[] calldata redeemablesContracts
+    ) external onlyOwner {
         _erc7498RedeemablesContracts = redeemablesContracts;
     }
 
@@ -67,15 +76,12 @@ contract ERC721ShipyardRedeemableMintable is ERC721ShipyardRedeemable, IRedempti
         if (!validCaller) revert InvalidCaller(msg.sender);
     }
 
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        virtual
-        override(ERC721ShipyardRedeemable)
-        returns (bool)
-    {
-        return interfaceId == type(IRedemptionMintable).interfaceId
-            || ERC721ShipyardRedeemable.supportsInterface(interfaceId);
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view virtual override(ERC721ShipyardRedeemable) returns (bool) {
+        return
+            interfaceId == type(IRedemptionMintable).interfaceId ||
+            ERC721ShipyardRedeemable.supportsInterface(interfaceId);
     }
 
     /**
@@ -119,8 +125,7 @@ contract ERC721ShipyardRedeemableMintable is ERC721ShipyardRedeemable, IRedempti
         );
     }
 
-    // TODO: For testing
-    // function mint(address to, uint256 tokenId) public onlyOwner {
-    //     _mint(to, tokenId);
-    // }
+    function mint(address to, uint256 tokenId) public onlyOwner {
+        _mint(to, tokenId);
+    }
 }
