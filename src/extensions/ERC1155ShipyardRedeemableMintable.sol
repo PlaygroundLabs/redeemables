@@ -30,10 +30,10 @@ contract ERC1155ShipyardRedeemableMintable is
     function mintRedemption(
         uint256 /* campaignId */,
         address recipient,
-        OfferItem calldata, /* offer */
-        ConsiderationItem[] calldata, /* consideration */
+        OfferItem calldata /* offer */,
+        ConsiderationItem[] calldata /* consideration */,
         TraitRedemption[] calldata /* traitRedemptions */
-    ) external {
+    ) external virtual {
         // Require that msg.sender is valid.
         _requireValidRedeemablesCaller();
 

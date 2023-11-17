@@ -977,6 +977,7 @@ contract CNCContractScript is Script, Test {
         //         "CNC-CERTS"
         //     );
 
+        // TODO: update to the Resources contract.
         // ERC1155ShipyardRedeemableMintable resources = new ERC1155ShipyardRedeemableMintable(
         //         "Captain & Company - Resources",
         //         "CNC-RSRCS"

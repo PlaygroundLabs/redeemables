@@ -6,6 +6,7 @@ import {ERC721ShipyardRedeemableMintableRentable} from "../src/extensions/ERC721
 import {Campaign, CampaignParams, CampaignRequirements, TraitRedemption} from "../src/lib/RedeemablesStructs.sol";
 import {OfferItem, ConsiderationItem} from "seaport-types/src/lib/ConsiderationStructs.sol";
 import {ERC1155ShipyardRedeemableMintable} from "../src/extensions/ERC1155ShipyardRedeemableMintable.sol";
+import {Resources} from "../src/extensions/Resources.sol";
 import {TestERC20} from "../test/utils/mocks/TestERC20.sol";
 import {BaseRedeemablesTest} from "./utils/BaseRedeemablesTest.sol";
 import {BURN_ADDRESS} from "../src/lib/RedeemablesConstants.sol";
@@ -44,10 +45,7 @@ contract LootboxTests is Test {
             "CNC-CERTS"
         );
 
-        resources = new ERC1155ShipyardRedeemableMintable(
-            "Captain & Company - Resources",
-            "CNC-RSRCS"
-        );
+        resources = new Resources("Captain & Company - Resources", "CNC-RSRCS");
 
         ships = new ERC721ShipyardRedeemableMintableRentable(
             "Captain & Company - Ships",
@@ -428,7 +426,7 @@ contract LootboxTests is Test {
 
         certificates.setApprovalForAll(address(resources), true); // TODO: manage through pre approvals
 
-        assertEq(resources.balanceOf(addr2, t1LumberTokenId), 10_000);
+        assertEq(resources.balanceOf(addr2, t1LumberTokenId), 0);
         resources.redeem(tokenIds, addr2, data);
 
         // Verify post redeem state
