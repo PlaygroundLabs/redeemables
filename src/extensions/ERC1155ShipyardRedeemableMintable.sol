@@ -43,14 +43,6 @@ contract ERC1155ShipyardRedeemableMintable is
         _mint(recipient, _nextTokenId - 1, 1, "");
     }
 
-    function supportsInterface(
-        bytes4 interfaceId
-    ) public view virtual override(ERC1155ShipyardRedeemable) returns (bool) {
-        return
-            interfaceId == type(IRedemptionMintable).interfaceId ||
-            ERC1155ShipyardRedeemable.supportsInterface(interfaceId);
-    }
-
     function batchSetTrait(
         uint256[] memory tokenIds,
         bytes32 traitKey,
@@ -116,5 +108,13 @@ contract ERC1155ShipyardRedeemableMintable is
         if (!validCaller) {
             revert InvalidCaller(msg.sender);
         }
+    }
+
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view virtual override(ERC1155ShipyardRedeemable) returns (bool) {
+        return
+            interfaceId == type(IRedemptionMintable).interfaceId ||
+            ERC1155ShipyardRedeemable.supportsInterface(interfaceId);
     }
 }
