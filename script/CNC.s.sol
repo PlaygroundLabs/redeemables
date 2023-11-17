@@ -1038,5 +1038,6 @@ contract CNCContractScript is Script, Test {
         // );
 
         // testRentals(shipsAddr);
+        // 
     }
 }
