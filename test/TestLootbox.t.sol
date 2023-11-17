@@ -326,7 +326,6 @@ contract LootboxTests is Test {
         // Redeem
         vm.startPrank(addr2);
 
-        // TODO: see if we can remove the approvals with pre approves
         certificates.setApprovalForAll(address(ships), true);
         resources.setApprovalForAll(address(ships), true);
         cosmetics.setApprovalForAll(address(ships), true);
@@ -424,7 +423,7 @@ contract LootboxTests is Test {
         // Redeem
         vm.startPrank(addr2);
 
-        certificates.setApprovalForAll(address(resources), true); // TODO: manage through pre approvals
+        certificates.setApprovalForAll(address(resources), true);
 
         assertEq(resources.balanceOf(addr2, t1LumberTokenId), 0);
         resources.redeem(tokenIds, addr2, data);

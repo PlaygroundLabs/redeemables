@@ -85,7 +85,6 @@ contract ERC1155ShipyardRedeemableMintable is
         }
     }
 
-    // TODO: make sure that this works as needed, permissions, etc.
     function burn(address account, uint256 id, uint256 value) public {
         _burn(account, id, value);
     }
