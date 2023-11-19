@@ -332,14 +332,11 @@ contract LootboxTests is Test {
         cosmetics.setApprovalForAll(address(ships), true);
         weth.approve(address(ships), 999999999);
 
-        // TODO:
-        // ships.redeem{value: 0.05 ether}(tokenIds, addr2, data);
-
         // Test that it fails with an insufficient eth balance
         vm.expectRevert();
         ships.redeem{value: 0.015 ether}(tokenIds, addr2, data);
 
-        vm.deal(addr2, 1 ether); // TODO
+        vm.deal(addr2, 1 ether);
 
         // Test that it fails with insufficient eth sent, but a sufficient balance
         vm.expectRevert();

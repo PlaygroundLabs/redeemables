@@ -48,7 +48,8 @@ contract CNCContractScript is Script, Test {
     uint32 t3OreTokenId = 6;
     uint32 shipLumberConsidered = 30_000;
     uint32 shipOreConsidered = 15_000;
-    uint32 wethConsidered = 500;
+    uint256 wraithEthConsidered = 0.050 ether;
+    uint256 clockworkEthConsidered = 0.015 ether;
     uint32 resourcesOffered = 10_000;
 
     uint32 campaignStartTime = 1698796800; //  seconds since epoch - nov 1 2023
@@ -105,160 +106,6 @@ contract CNCContractScript is Script, Test {
 
         // confirm they no longer have the lootbox
         assertEq(lootboxes.balanceOf(msg.sender), 0);
-    }
-
-    function testWraithRedeems(
-        address shipsAddr,
-        address certificatesAddr,
-        address resourcesAddr,
-        address wethAddr
-    ) public {
-        // This tests redeeming the wraith blueprint and goldprint
-
-        ERC721ShipyardRedeemableMintable ships = ERC721ShipyardRedeemableMintable(
-                shipsAddr
-            );
-        ERC1155ShipyardRedeemableMintable certificates = ERC1155ShipyardRedeemableMintable(
-                certificatesAddr
-            );
-        ERC1155ShipyardRedeemableMintable resources = ERC1155ShipyardRedeemableMintable(
-                resourcesAddr
-            );
-
-        TestERC20 weth = TestERC20(wethAddr);
-
-        // Wraith Blueprint Section
-
-        // Mint some tokens for the redeem ingredients
-        certificates.mint(msg.sender, 1, 1); // certificate
-        resources.mint(msg.sender, t3LumberTokenId, 30_000);
-        resources.mint(msg.sender, t3OreTokenId, 30_000);
-        weth.mint(msg.sender, 20_000); // weth
-        certificates.setApprovalForAll(address(ships), true);
-        resources.setApprovalForAll(address(ships), true);
-        weth.approve(address(ships), 99999999);
-        certificates.setTrait(1, traitKey, traitValueWraithBlueprint);
-
-        // Verify pre-redeem state
-        assertEq(certificates.balanceOf(msg.sender, 1), 1);
-        assertEq(certificates.balanceOf(CNC_TREASURY, 1), 0);
-        assertEq(resources.balanceOf(msg.sender, t3LumberTokenId), 30_000);
-        assertEq(resources.balanceOf(msg.sender, t3OreTokenId), 30_000);
-        assertEq(weth.balanceOf(msg.sender), 20_000);
-        assertEq(ships.balanceOf(CNC_TREASURY), 0);
-
-        // Let's redeem!
-        uint256 requirementsIndex = 0;
-        bytes32 redemptionHash;
-        uint256[] memory traitRedemptionTokenIds = new uint256[](1);
-        traitRedemptionTokenIds[0] = 1;
-        uint256 salt;
-        bytes memory signature;
-        bytes memory data = abi.encode(
-            1, // wraithBlueprintCampaignId
-            requirementsIndex,
-            redemptionHash,
-            traitRedemptionTokenIds,
-            salt,
-            signature
-        );
-
-        uint256[] memory tokenIds = new uint256[](4);
-        tokenIds[0] = 1;
-        tokenIds[1] = t3LumberTokenId;
-        tokenIds[2] = t3OreTokenId;
-        tokenIds[3] = 1;
-
-        ships.redeem(tokenIds, msg.sender, data);
-
-        // Verify post-redeem state
-        assertEq(ships.ownerOf(1), msg.sender);
-        assertEq(weth.balanceOf(msg.sender), 20_000 - wethConsidered);
-        assertEq(weth.balanceOf(CNC_TREASURY), wethConsidered);
-
-        assertEq(certificates.balanceOf(msg.sender, 1), 0);
-        assertEq(certificates.balanceOf(CNC_TREASURY, 1), 0);
-        assertEq(
-            resources.balanceOf(msg.sender, t3LumberTokenId),
-            30_000 - shipLumberConsidered
-        );
-        assertEq(
-            resources.balanceOf(msg.sender, t3OreTokenId),
-            30_000 - shipOreConsidered
-        );
-        assertEq(
-            resources.balanceOf(CNC_TREASURY, t3LumberTokenId),
-            shipLumberConsidered
-        );
-        assertEq(
-            resources.balanceOf(CNC_TREASURY, t3OreTokenId),
-            shipOreConsidered
-        );
-
-        // Wraith Goldprint Section
-
-        certificates.mint(msg.sender, 7, 1); // certificate
-        certificates.setTrait(7, traitKey, traitValueWraithGoldprint);
-        assertEq(
-            certificates.getTraitValue(7, traitKey),
-            traitValueWraithGoldprint
-        );
-
-        uint256[] memory traitRedemptionTokenIds2 = new uint256[](1);
-        traitRedemptionTokenIds2[0] = 7;
-        bytes memory data2 = abi.encode(
-            2, // wraithBlueprintCampaignId
-            requirementsIndex, // 0 because only one requirements
-            0x0,
-            traitRedemptionTokenIds2,
-            salt,
-            signature
-        );
-
-        uint256[] memory tokenIds2 = new uint256[](1);
-        tokenIds2[0] = 7;
-
-        assertEq(certificates.balanceOf(msg.sender, 7), 1);
-
-        ships.redeem(tokenIds2, msg.sender, data2);
-        assertEq(ships.ownerOf(2), msg.sender);
-
-        // Verify post-redeem state
-        // These are requiring viaIR=true in found.toml for reasons I don't understand.
-        assertEq(certificates.balanceOf(msg.sender, 7), 0);
-        assertEq(certificates.balanceOf(CNC_TREASURY, 7), 0);
-        assertEq(ships.ownerOf(2), msg.sender);
-    }
-
-    function doARedeem(
-        address shipsAddr,
-        uint256 tokenToRedeem,
-        uint256 campaignId
-    ) public {
-        // This was a helper function for testing a redeem
-        // on arb1 to already deployed contracts
-        // This was specificaly used for a goldprint
-
-        uint256[] memory traitRedemptionTokenIds = new uint256[](1);
-        traitRedemptionTokenIds[0] = tokenToRedeem;
-
-        bytes memory data = abi.encode(
-            campaignId,
-            0,
-            0x0,
-            traitRedemptionTokenIds,
-            0x0,
-            0x0
-        );
-
-        uint256[] memory tokenIds = new uint256[](1);
-        tokenIds[0] = tokenToRedeem;
-
-        ERC721ShipyardRedeemableMintable(shipsAddr).redeem(
-            tokenIds,
-            msg.sender,
-            data
-        );
     }
 
     function setUpCertificatesCampaign(
@@ -400,11 +247,11 @@ contract CNCContractScript is Script, Test {
         });
 
         consideration[3] = ConsiderationItem({
-            itemType: ItemType.ERC20,
-            token: wethAddr,
+            itemType: ItemType.NATIVE,
+            token: address(0),
             identifierOrCriteria: 0,
-            startAmount: wethConsidered,
-            endAmount: wethConsidered,
+            startAmount: wraithEthConsidered,
+            endAmount: wraithEthConsidered,
             recipient: payable(CNC_TREASURY)
         });
 
@@ -529,9 +376,6 @@ contract CNCContractScript is Script, Test {
                 shipsAddr
             );
 
-        //////////////////////////
-        /// Blueprint Campaign ///
-        //////////////////////////
         OfferItem[] memory offer = new OfferItem[](1);
         offer[0] = OfferItem({
             itemType: ItemType.ERC721_WITH_CRITERIA,
@@ -570,11 +414,11 @@ contract CNCContractScript is Script, Test {
         });
 
         consideration[3] = ConsiderationItem({
-            itemType: ItemType.ERC20,
-            token: wethAddr,
+            itemType: ItemType.NATIVE,
+            token: address(0),
             identifierOrCriteria: 0,
-            startAmount: wethConsidered,
-            endAmount: wethConsidered,
+            startAmount: clockworkEthConsidered,
+            endAmount: clockworkEthConsidered,
             recipient: payable(CNC_TREASURY)
         });
 
@@ -1024,14 +868,6 @@ contract CNCContractScript is Script, Test {
 
         // testLootboxRedeem(lootboxesAddr, certificatesAddr);
 
-        // testWraithRedeems(
-        //     address(ships),
-        //     address(certificates),
-        //     address(resources),
-        //     address(weth)
-        // );
-
         // testRentals(shipsAddr);
-        //
     }
 }
