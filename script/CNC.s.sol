@@ -774,7 +774,7 @@ contract CNCContractScript is Script, Test {
         //     certificates.setTrait(i, traitKey, traitValueWraithGoldprint);
         // }
 
-        for (uint i = 1; i < 5; i++) {
+        for (uint i = 1; i < 6; i++) {
             uint tokenIdBase = 100000 + (i * 100);
             for (uint j = 1; j <= 19; j++) {
                 uint tokenId = tokenIdBase + j;
@@ -797,36 +797,36 @@ contract CNCContractScript is Script, Test {
         vm.startBroadcast();
 
         // Deploy the contracts
-        ERC721ShipyardRedeemableMintableRentable lootboxes = new ERC721ShipyardRedeemableMintableRentable(
-                "Captain & Company - Clockwork Lootbox",
-                "CNC-CLBX"
-            );
+        // ERC721ShipyardRedeemableMintableRentable lootboxes = new ERC721ShipyardRedeemableMintableRentable(
+        //         "Captain & Company - Clockwork Lootbox",
+        //         "CNC-CLBX"
+        //     );
 
-        ERC1155ShipyardRedeemableMintable certificates = new ERC1155ShipyardRedeemableMintable(
-                "Captain & Company - Certificates",
-                "CNC-CERTS"
-            );
+        // ERC1155ShipyardRedeemableMintable certificates = new ERC1155ShipyardRedeemableMintable(
+        //         "Captain & Company - Certificates",
+        //         "CNC-CERTS"
+        //     );
 
-        Resources resources = new Resources(
-            "Captain & Company - Resources",
-            "CNC-RSRCS"
-        );
+        // Resources resources = new Resources(
+        //     "Captain & Company - Resources",
+        //     "CNC-RSRCS"
+        // );
 
-        ERC721ShipyardRedeemableMintableRentable ships = new ERC721ShipyardRedeemableMintableRentable(
-                "Captain & Company - Ships",
-                "CNC-SHIPS"
-            );
+        // ERC721ShipyardRedeemableMintableRentable ships = new ERC721ShipyardRedeemableMintableRentable(
+        //         "Captain & Company - Ships",
+        //         "CNC-SHIPS"
+        //     );
 
-        ERC721ShipyardRedeemableMintable cosmetics = new ERC721ShipyardRedeemableMintable(
-                "Cosmetics",
-                "CNS-COSM"
-            );
+        // ERC721ShipyardRedeemableMintable cosmetics = new ERC721ShipyardRedeemableMintable(
+        //         "Cosmetics",
+        //         "CNS-COSM"
+        // );
 
-        address lootboxesAddr = address(lootboxes);
-        address shipsAddr = address(ships);
-        address certificatesAddr = address(certificates);
-        address resourcesAddr = address(resources);
-        address cosmeticsAddr = address(cosmetics);
+        // address lootboxesAddr = address(lootboxes);
+        // address shipsAddr = address(ships);
+        // address certificatesAddr = address(certificates);
+        // address resourcesAddr = address(resources);
+        // address cosmeticsAddr = address(cosmetics);
 
         // Arbitrum Goerli addresses (v2 deployment)
         // address lootboxesAddr = 0x95A863f964534527f733e2fA1f4B09D7076A80ef;
@@ -838,14 +838,17 @@ contract CNCContractScript is Script, Test {
         // Sepolia v2 addresses
         // address certificatesAddr = 0xDa2eBf447B5a3d7d3C1201BF185e9c031765425e;
 
+        // Sepolia v5 addresses
+        address certificatesAddr = 0xCce4a77f18e20C2526088631FA849CD20F629f0A;
+
         // Used for on-chain, not locally
-        // mintAndSetTraits(certificatesAddr);
+        mintAndSetTraits(certificatesAddr);
 
-        setUpCertificatesCampaign(lootboxesAddr, certificatesAddr);
+        // setUpCertificatesCampaign(lootboxesAddr, certificatesAddr);
 
-        setUpShipCampaigns(shipsAddr, certificatesAddr, resourcesAddr);
-        setUpResourcesCampaigns(resourcesAddr, certificatesAddr);
-        setUpCosmeticsCampaigns(cosmeticsAddr, certificatesAddr);
+        // setUpShipCampaigns(shipsAddr, certificatesAddr, resourcesAddr);
+        // setUpResourcesCampaigns(resourcesAddr, certificatesAddr);
+        // setUpCosmeticsCampaigns(cosmeticsAddr, certificatesAddr);
 
         // testLootboxRedeem(lootboxesAddr, certificatesAddr);
 
