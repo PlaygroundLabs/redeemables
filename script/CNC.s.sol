@@ -46,14 +46,15 @@ contract CNCContractScript is Script, Test {
     uint32 t1OreTokenId = 4;
     uint32 t2OreTokenId = 5;
     uint32 t3OreTokenId = 6;
-    uint32 shipLumberConsidered = 10_000;
-    uint32 shipOreConsidered = 7_500;
+    uint32 shipLumberConsidered = 30_000;
+    uint32 shipOreConsidered = 15_000;
     uint32 wethConsidered = 500;
     uint32 resourcesOffered = 10_000;
 
-    uint32 campaignStartTime = 1698796800; //  seconds since epoch
-    uint32 campaignEndTime = 1733011200; // seconds since epoch
-    uint32 maxCampaignRedemptions = 6500; // this is specifically for the lootbox
+    uint32 campaignStartTime = 1698796800; //  seconds since epoch - nov 1 2023
+    uint32 campaignEndTime = 2016037538; // seconds since epoch  - nov 19 2033
+    uint32 maxCertificateCampaignRedemptions = 6_500; // for the lootbox/certs campaign
+    uint32 maxCampaignRedemptions = 100_000; // for all other campaigns
 
     function testLootboxRedeem(
         address lootboxesAdddr,
@@ -329,7 +330,7 @@ contract CNCContractScript is Script, Test {
             signer: address(0),
             startTime: campaignStartTime,
             endTime: campaignEndTime,
-            maxCampaignRedemptions: maxCampaignRedemptions,
+            maxCampaignRedemptions: maxCertificateCampaignRedemptions,
             manager: msg.sender
         });
 
@@ -724,8 +725,7 @@ contract CNCContractScript is Script, Test {
         address certificatesAddr,
         address resourcesAddr,
         bytes32 traitValue,
-        uint32 resourcesTokenId,
-        uint32 resourcesAmount
+        uint32 resourcesTokenId
     ) public returns (uint256) {
         // Sets up a single campaign for resources given the parameters
         ERC1155ShipyardRedeemableMintable resources = ERC1155ShipyardRedeemableMintable(
@@ -737,8 +737,8 @@ contract CNCContractScript is Script, Test {
             itemType: ItemType.ERC1155_WITH_CRITERIA,
             token: resourcesAddr,
             identifierOrCriteria: resourcesTokenId,
-            startAmount: resourcesAmount,
-            endAmount: resourcesAmount
+            startAmount: resourcesOffered,
+            endAmount: resourcesOffered
         });
 
         ConsiderationItem[] memory consideration = new ConsiderationItem[](1);
@@ -794,43 +794,37 @@ contract CNCContractScript is Script, Test {
             certificatesAddr,
             resourcesAddr,
             traitValueT1Lumber,
-            t1LumberTokenId,
-            resourcesOffered
+            t1LumberTokenId
         );
         setUpResourcesCampaign( // t2 lumber
             certificatesAddr,
             resourcesAddr,
             traitValueT2Lumber,
-            t2LumberTokenId,
-            resourcesOffered
+            t2LumberTokenId
         );
         setUpResourcesCampaign( // t3 lumber
             certificatesAddr,
             resourcesAddr,
             traitValueT3Lumber,
-            t3LumberTokenId,
-            resourcesOffered
+            t3LumberTokenId
         );
         setUpResourcesCampaign( // t1 ore
             certificatesAddr,
             resourcesAddr,
             traitValueT1Ore,
-            t1OreTokenId,
-            resourcesOffered
+            t1OreTokenId
         );
         setUpResourcesCampaign( // t2 ore
             certificatesAddr,
             resourcesAddr,
             traitValueT2Ore,
-            t2OreTokenId,
-            resourcesOffered
+            t2OreTokenId
         );
         setUpResourcesCampaign( // t3 ore
             certificatesAddr,
             resourcesAddr,
             traitValueT3Ore,
-            t3OreTokenId,
-            resourcesOffered
+            t3OreTokenId
         );
     }
 
@@ -968,39 +962,39 @@ contract CNCContractScript is Script, Test {
         vm.startBroadcast();
 
         // Deploy the contracts
-        // ERC721ShipyardRedeemableMintableRentable lootboxes = new ERC721ShipyardRedeemableMintableRentable(
-        //         "Captain & Company - Clockwork Lootbox",
-        //         "CNC-CLBX"
-        //     );
+        ERC721ShipyardRedeemableMintableRentable lootboxes = new ERC721ShipyardRedeemableMintableRentable(
+                "Captain & Company - Clockwork Lootbox",
+                "CNC-CLBX"
+            );
 
-        // ERC1155ShipyardRedeemableMintable certificates = new ERC1155ShipyardRedeemableMintable(
-        //         "Captain & Company - Certificates",
-        //         "CNC-CERTS"
-        //     );
+        ERC1155ShipyardRedeemableMintable certificates = new ERC1155ShipyardRedeemableMintable(
+                "Captain & Company - Certificates",
+                "CNC-CERTS"
+            );
 
-        // Resources resources = new Resources(
-        //     "Captain & Company - Resources",
-        //     "CNC-RSRCS"
-        // );
+        Resources resources = new Resources(
+            "Captain & Company - Resources",
+            "CNC-RSRCS"
+        );
 
-        // ERC721ShipyardRedeemableMintableRentable ships = new ERC721ShipyardRedeemableMintableRentable(
-        //         "Captain & Company - Ships",
-        //         "CNC-SHIPS"
-        //     );
+        ERC721ShipyardRedeemableMintableRentable ships = new ERC721ShipyardRedeemableMintableRentable(
+                "Captain & Company - Ships",
+                "CNC-SHIPS"
+            );
 
-        // ERC721ShipyardRedeemableMintable cosmetics = new ERC721ShipyardRedeemableMintable(
-        //         "Cosmetics",
-        //         "CNS-COSM"
-        //     );
+        ERC721ShipyardRedeemableMintable cosmetics = new ERC721ShipyardRedeemableMintable(
+                "Cosmetics",
+                "CNS-COSM"
+            );
 
-        // TestERC20 weth = new TestERC20(); // for testing locally
+        TestERC20 weth = new TestERC20(); // for testing locally
 
-        // address lootboxesAddr = address(lootboxes);
-        // address shipsAddr = address(ships);
-        // address certificatesAddr = address(certificates);
-        // address resourcesAddr = address(resources);
-        // address cosmeticsAddr = address(cosmetics);
-        // address wethAddr = address(weth);
+        address lootboxesAddr = address(lootboxes);
+        address shipsAddr = address(ships);
+        address certificatesAddr = address(certificates);
+        address resourcesAddr = address(resources);
+        address cosmeticsAddr = address(cosmetics);
+        address wethAddr = address(weth);
 
         // Arbitrum Goerli addresses (v2 deployment)
         // address lootboxesAddr = 0x95A863f964534527f733e2fA1f4B09D7076A80ef;
@@ -1015,18 +1009,18 @@ contract CNCContractScript is Script, Test {
         // address wethAddr = 0xD0dF82dE051244f04BfF3A8bB1f62E1cD39eED92; // Sepolia https://sepolia.etherscan.io/address/0xd0df82de051244f04bff3a8bb1f62e1cd39eed92
 
         // Used for on-chain, not locally
-        mintAndSetTraits(certificatesAddr);
+        // mintAndSetTraits(certificatesAddr);
 
-        // setUpCertificatesCampaign(lootboxesAddr, certificatesAddr);
+        setUpCertificatesCampaign(lootboxesAddr, certificatesAddr);
 
-        // setUpShipCampaigns(
-        //     shipsAddr,
-        //     certificatesAddr,
-        //     resourcesAddr,
-        //     wethAddr
-        // );
-        // setUpResourcesCampaigns(resourcesAddr, certificatesAddr);
-        // setUpCosmeticsCampaigns(cosmeticsAddr, certificatesAddr);
+        setUpShipCampaigns(
+            shipsAddr,
+            certificatesAddr,
+            resourcesAddr,
+            wethAddr
+        );
+        setUpResourcesCampaigns(resourcesAddr, certificatesAddr);
+        setUpCosmeticsCampaigns(cosmeticsAddr, certificatesAddr);
 
         // testLootboxRedeem(lootboxesAddr, certificatesAddr);
 
