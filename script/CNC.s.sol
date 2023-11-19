@@ -968,39 +968,39 @@ contract CNCContractScript is Script, Test {
         vm.startBroadcast();
 
         // Deploy the contracts
-        ERC721ShipyardRedeemableMintableRentable lootboxes = new ERC721ShipyardRedeemableMintableRentable(
-                "Captain & Company - Clockwork Lootbox",
-                "CNC-CLBX"
-            );
+        // ERC721ShipyardRedeemableMintableRentable lootboxes = new ERC721ShipyardRedeemableMintableRentable(
+        //         "Captain & Company - Clockwork Lootbox",
+        //         "CNC-CLBX"
+        //     );
 
-        ERC1155ShipyardRedeemableMintable certificates = new ERC1155ShipyardRedeemableMintable(
-                "Captain & Company - Certificates",
-                "CNC-CERTS"
-            );
+        // ERC1155ShipyardRedeemableMintable certificates = new ERC1155ShipyardRedeemableMintable(
+        //         "Captain & Company - Certificates",
+        //         "CNC-CERTS"
+        //     );
 
-        Resources resources = new Resources(
-            "Captain & Company - Resources",
-            "CNC-RSRCS"
-        );
+        // Resources resources = new Resources(
+        //     "Captain & Company - Resources",
+        //     "CNC-RSRCS"
+        // );
 
-        ERC721ShipyardRedeemableMintableRentable ships = new ERC721ShipyardRedeemableMintableRentable(
-                "Captain & Company - Ships",
-                "CNC-SHIPS"
-            );
+        // ERC721ShipyardRedeemableMintableRentable ships = new ERC721ShipyardRedeemableMintableRentable(
+        //         "Captain & Company - Ships",
+        //         "CNC-SHIPS"
+        //     );
 
-        ERC721ShipyardRedeemableMintable cosmetics = new ERC721ShipyardRedeemableMintable(
-                "Cosmetics",
-                "CNS-COSM"
-            );
+        // ERC721ShipyardRedeemableMintable cosmetics = new ERC721ShipyardRedeemableMintable(
+        //         "Cosmetics",
+        //         "CNS-COSM"
+        //     );
 
-        TestERC20 weth = new TestERC20(); // for testing locally
+        // TestERC20 weth = new TestERC20(); // for testing locally
 
-        address lootboxesAddr = address(lootboxes);
-        address shipsAddr = address(ships);
-        address certificatesAddr = address(certificates);
-        address resourcesAddr = address(resources);
-        address cosmeticsAddr = address(cosmetics);
-        address wethAddr = address(weth);
+        // address lootboxesAddr = address(lootboxes);
+        // address shipsAddr = address(ships);
+        // address certificatesAddr = address(certificates);
+        // address resourcesAddr = address(resources);
+        // address cosmeticsAddr = address(cosmetics);
+        // address wethAddr = address(weth);
 
         // Arbitrum Goerli addresses (v2 deployment)
         // address lootboxesAddr = 0x95A863f964534527f733e2fA1f4B09D7076A80ef;
@@ -1010,23 +1010,23 @@ contract CNCContractScript is Script, Test {
         // address cosmeticsAddr = 0x479750c63C3243375A52115C0987c4f78B48c398;
         // address wethAddr = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1; // https://arbiscan.io/address/0x82af49447d8a07e3bd95bd0d56f35241523fbab1
 
-        // Sepolia addresses
+        // Sepolia v2 addresses
         // address certificatesAddr = 0xDa2eBf447B5a3d7d3C1201BF185e9c031765425e;
         // address wethAddr = 0xD0dF82dE051244f04BfF3A8bB1f62E1cD39eED92; // Sepolia https://sepolia.etherscan.io/address/0xd0df82de051244f04bff3a8bb1f62e1cd39eed92
 
         // Used for on-chain, not locally
-        // mintAndSetTraits(certificatesAddr);
+        mintAndSetTraits(certificatesAddr);
 
-        setUpCertificatesCampaign(lootboxesAddr, certificatesAddr);
+        // setUpCertificatesCampaign(lootboxesAddr, certificatesAddr);
 
-        setUpShipCampaigns(
-            shipsAddr,
-            certificatesAddr,
-            resourcesAddr,
-            wethAddr
-        );
-        setUpResourcesCampaigns(resourcesAddr, certificatesAddr);
-        setUpCosmeticsCampaigns(cosmeticsAddr, certificatesAddr);
+        // setUpShipCampaigns(
+        //     shipsAddr,
+        //     certificatesAddr,
+        //     resourcesAddr,
+        //     wethAddr
+        // );
+        // setUpResourcesCampaigns(resourcesAddr, certificatesAddr);
+        // setUpCosmeticsCampaigns(cosmeticsAddr, certificatesAddr);
 
         // testLootboxRedeem(lootboxesAddr, certificatesAddr);
 
@@ -1038,6 +1038,6 @@ contract CNCContractScript is Script, Test {
         // );
 
         // testRentals(shipsAddr);
-        // 
+        //
     }
 }
