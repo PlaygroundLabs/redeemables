@@ -175,12 +175,13 @@ contract LootboxTests is Test {
             recipient: payable(CNC_TREASURY)
         });
 
+        // ETH consideration
         consideration[3] = ConsiderationItem({
-            itemType: ItemType.ERC20,
-            token: address(weth),
+            itemType: ItemType.NATIVE,
+            token: address(0),
             identifierOrCriteria: 0,
-            startAmount: 5,
-            endAmount: 5,
+            startAmount: 0.015 ether,
+            endAmount: 0.015 ether,
             recipient: payable(CNC_TREASURY)
         });
 
@@ -321,7 +322,7 @@ contract LootboxTests is Test {
         tokenIds[0] = certTokenId;
         tokenIds[1] = t2LumberTokenId;
         tokenIds[2] = t2OreTokenId;
-        tokenIds[3] = 1;
+        tokenIds[3] = 0; // eth
 
         // Redeem
         vm.startPrank(addr2);
@@ -331,14 +332,28 @@ contract LootboxTests is Test {
         cosmetics.setApprovalForAll(address(ships), true);
         weth.approve(address(ships), 999999999);
 
-        ships.redeem(tokenIds, addr2, data);
+        // TODO:
+        // ships.redeem{value: 0.05 ether}(tokenIds, addr2, data);
+
+        // Test that it fails with an insufficient eth balance
+        vm.expectRevert();
+        ships.redeem{value: 0.015 ether}(tokenIds, addr2, data);
+
+        vm.deal(addr2, 1 ether); // TODO
+
+        // Test that it fails with insufficient eth sent, but a sufficient balance
+        vm.expectRevert();
+        ships.redeem{value: 0.010 ether}(tokenIds, addr2, data);
+
+        ships.redeem{value: 0.015 ether}(tokenIds, addr2, data);
         vm.stopPrank();
 
         assertEq(ships.ownerOf(1), addr2);
         assertEq(certificates.balanceOf(addr2, certTokenId), 0);
         assertEq(resources.balanceOf(addr2, t2LumberTokenId), 10);
         assertEq(resources.balanceOf(addr2, t2OreTokenId), 10);
-        assertEq(weth.balanceOf(addr2), 0);
+        assertEq(weth.balanceOf(addr2), 5);
+        assertEq(address(addr2).balance, 0.985 ether);
     }
 
     function setUpResourcesCampaign() private returns (uint256) {
@@ -580,5 +595,9 @@ contract LootboxTests is Test {
         // https://book.getfoundry.sh/cheatcodes/expect-revert?highlight=expectRevert
         vm.expectRevert(bytes("NOT_AUTHORIZED"));
         revert("NOT_AUTHORIZED");
+
+        //  https://mirror.xyz/horsefacts.eth/Jex2YVaO65dda6zEyfM_-DXlXhOWCAoSpOx5PLocYgw
+        vm.deal(msg.sender, 1 ether);
+        assertEq(address(msg.sender).balance, 1 ether);
     }
 }
