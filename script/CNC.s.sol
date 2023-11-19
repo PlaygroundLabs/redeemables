@@ -202,8 +202,7 @@ contract CNCContractScript is Script, Test {
     function setUpWraithBlueprintCampaign(
         address shipsAddr,
         address certificatesAddr,
-        address resourcesAddr,
-        address wethAddr
+        address resourcesAddr
     ) public returns (uint256) {
         ERC721ShipyardRedeemableMintable ships = ERC721ShipyardRedeemableMintable(
                 shipsAddr
@@ -296,8 +295,7 @@ contract CNCContractScript is Script, Test {
     function setUpWraithGoldprintCampaign(
         address shipsAddr,
         address certificatesAddr,
-        address resourcesAddr,
-        address wethAddr
+        address resourcesAddr
     ) public returns (uint256) {
         // Setups the goldprint campaign for the wraith ship
         // Considerations:
@@ -367,8 +365,7 @@ contract CNCContractScript is Script, Test {
     function setUpClockworkBlueprintCampaign(
         address shipsAddr,
         address certificatesAddr,
-        address resourcesAddr,
-        address wethAddr
+        address resourcesAddr
     ) public returns (uint256) {
         // Creates a campaigns for clockwork ship from a blueprint.
 
@@ -462,8 +459,7 @@ contract CNCContractScript is Script, Test {
     function setUpClockworkGoldprintCampaign(
         address shipsAddr,
         address certificatesAddr,
-        address resourcesAddr,
-        address wethAddr
+        address resourcesAddr
     ) public returns (uint256) {
         // Setups the goldprint campaign
         // Considerations:
@@ -532,36 +528,31 @@ contract CNCContractScript is Script, Test {
     function setUpShipCampaigns(
         address shipsAddr,
         address certificatesAddr,
-        address resourcesAddr,
-        address wethAddr
+        address resourcesAddr
     ) public {
         // Sets up all four ship campaigns
         setUpWraithBlueprintCampaign(
             shipsAddr,
             certificatesAddr,
-            resourcesAddr,
-            wethAddr
+            resourcesAddr
         );
 
         setUpWraithGoldprintCampaign(
             shipsAddr,
             certificatesAddr,
-            resourcesAddr,
-            wethAddr
+            resourcesAddr
         );
 
         setUpClockworkBlueprintCampaign(
             shipsAddr,
             certificatesAddr,
-            resourcesAddr,
-            wethAddr
+            resourcesAddr
         );
 
         setUpClockworkGoldprintCampaign(
             shipsAddr,
             certificatesAddr,
-            resourcesAddr,
-            wethAddr
+            resourcesAddr
         );
     }
 
@@ -831,14 +822,11 @@ contract CNCContractScript is Script, Test {
                 "CNS-COSM"
             );
 
-        TestERC20 weth = new TestERC20(); // for testing locally
-
         address lootboxesAddr = address(lootboxes);
         address shipsAddr = address(ships);
         address certificatesAddr = address(certificates);
         address resourcesAddr = address(resources);
         address cosmeticsAddr = address(cosmetics);
-        address wethAddr = address(weth);
 
         // Arbitrum Goerli addresses (v2 deployment)
         // address lootboxesAddr = 0x95A863f964534527f733e2fA1f4B09D7076A80ef;
@@ -846,23 +834,16 @@ contract CNCContractScript is Script, Test {
         // address certificatesAddr = 0x5e1a8F974642dE67a43587A469b143f39444223d;
         // address resourcesAddr = 0x6fdb1978218A3f31dAF107875Ae25a930A1A1EF1;
         // address cosmeticsAddr = 0x479750c63C3243375A52115C0987c4f78B48c398;
-        // address wethAddr = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1; // https://arbiscan.io/address/0x82af49447d8a07e3bd95bd0d56f35241523fbab1
 
         // Sepolia v2 addresses
         // address certificatesAddr = 0xDa2eBf447B5a3d7d3C1201BF185e9c031765425e;
-        // address wethAddr = 0xD0dF82dE051244f04BfF3A8bB1f62E1cD39eED92; // Sepolia https://sepolia.etherscan.io/address/0xd0df82de051244f04bff3a8bb1f62e1cd39eed92
 
         // Used for on-chain, not locally
         // mintAndSetTraits(certificatesAddr);
 
         setUpCertificatesCampaign(lootboxesAddr, certificatesAddr);
 
-        setUpShipCampaigns(
-            shipsAddr,
-            certificatesAddr,
-            resourcesAddr,
-            wethAddr
-        );
+        setUpShipCampaigns(shipsAddr, certificatesAddr, resourcesAddr);
         setUpResourcesCampaigns(resourcesAddr, certificatesAddr);
         setUpCosmeticsCampaigns(cosmeticsAddr, certificatesAddr);
 
