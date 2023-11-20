@@ -53,7 +53,7 @@ contract CNCContractScript is Script, Test {
     uint32 resourcesOffered = 10_000;
 
     // uint32 campaignStartTime = 1698796800; //  seconds since epoch - nov 1 2023
-    uint32 campaignStartTime = 1700586000000; //  nov 21, 12pm ET
+    uint32 campaignStartTime = 1700586000; //  nov 21, 12pm ET
     uint32 campaignEndTime = 2016037538; // seconds since epoch  - nov 19 2033
     uint32 maxCertificateCampaignRedemptions = 6_500; // for the lootbox/certs campaign
     uint32 maxCampaignRedemptions = 100_000; // for all other campaigns
@@ -825,7 +825,7 @@ contract CNCContractScript is Script, Test {
 
         // address lootboxesAddr = address(lootboxes);
         // address shipsAddr = address(ships);
-        // address certificatesAddr = address(certificates);
+        address certificatesAddr = address(certificates);
         // address resourcesAddr = address(resources);
         // address cosmeticsAddr = address(cosmetics);
 
@@ -845,7 +845,7 @@ contract CNCContractScript is Script, Test {
         // address resourcesAddr = 0xaDCA84042C628A04009E2375E8879F874f2E971D;
 
         // Arbitrum Mainnet
-        address lootBoxesAddr = 0xDEEBFE062Ea7F30b2B13e3B075FA0Bb1F7cEbB85;
+        address lootboxesAddr = 0xDEEBFE062Ea7F30b2B13e3B075FA0Bb1F7cEbB85;
 
         // Used for on-chain, not locally
         // mintAndSetTraits(certificatesAddr);
