@@ -19,13 +19,6 @@ contract ERC721ShipyardRedeemableMintable is
     /// @dev The ERC-7498 redeemables contracts.
     address[] internal _erc7498RedeemablesContracts;
 
-    /// @dev The preapproved address.
-    address internal _preapprovedAddress;
-
-    /// @dev The preapproved OpenSea conduit address.
-    address internal immutable _CONDUIT =
-        0x1E0049783F008A0085193E00003D00cd54003c71;
-
     /// @dev The next token id to mint.
     uint256 _nextTokenId = 1;
 
@@ -37,8 +30,8 @@ contract ERC721ShipyardRedeemableMintable is
     function mintRedemption(
         uint256 /* campaignId */,
         address recipient,
-        OfferItem calldata, /* offer */
-        ConsiderationItem[] calldata, /* consideration */
+        OfferItem calldata /* offer */,
+        ConsiderationItem[] calldata /* consideration */,
         TraitRedemption[] calldata /* traitRedemptions */
     ) external {
         // Require that msg.sender is valid.
@@ -83,33 +76,6 @@ contract ERC721ShipyardRedeemableMintable is
         return
             interfaceId == type(IRedemptionMintable).interfaceId ||
             ERC721ShipyardRedeemable.supportsInterface(interfaceId);
-    }
-
-    /**
-     * @notice Set the preapproved address. Only callable by the owner.
-     *
-     * @param newPreapprovedAddress The new preapproved address.
-     */
-    function setPreapprovedAddress(
-        address newPreapprovedAddress
-    ) external onlyOwner {
-        _preapprovedAddress = newPreapprovedAddress;
-    }
-
-    /**
-     * @dev Returns if the `operator` is allowed to manage all of the assets
-     *      of `owner`.
-     *
-     * See {setApprovalForAll}.
-     */
-    function isApprovedForAll(
-        address owner,
-        address operator
-    ) public view virtual override returns (bool) {
-        if (operator == _CONDUIT || operator == _preapprovedAddress) {
-            return true;
-        }
-        return super.isApprovedForAll(owner, operator);
     }
 
     function mint(address to, uint256 tokenId) public onlyOwner {

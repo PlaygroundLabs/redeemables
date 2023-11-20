@@ -59,8 +59,6 @@ contract LootboxTests is Test {
         );
 
         weth = new TestERC20();
-
-        lootboxes.setPreapprovedAddress(address(certificates));
     }
 
     function setUpCertificatesCampaign() private returns (uint256) {
