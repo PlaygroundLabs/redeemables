@@ -12,26 +12,20 @@ import {ERC1155ShipyardRedeemable} from "../ERC1155ShipyardRedeemable.sol";
 import {IRedemptionMintable} from "../interfaces/IRedemptionMintable.sol";
 import {TraitRedemption} from "../lib/RedeemablesStructs.sol";
 
-contract ERC1155ShipyardRedeemableMintable is
-    ERC1155ShipyardRedeemable,
-    IRedemptionMintable
-{
+contract ERC1155ShipyardRedeemableMintable is ERC1155ShipyardRedeemable, IRedemptionMintable {
     /// @dev The ERC-7498 redeemables contracts.
     address[] internal _erc7498RedeemablesContracts;
 
     /// @dev The next token id to mint. Each token will have a supply of 1.
     uint256 _nextTokenId = 1;
 
-    constructor(
-        string memory name_,
-        string memory symbol_
-    ) ERC1155ShipyardRedeemable(name_, symbol_) {}
+    constructor(string memory name_, string memory symbol_) ERC1155ShipyardRedeemable(name_, symbol_) {}
 
     function mintRedemption(
-        uint256 /* campaignId */,
+        uint256, /* campaignId */
         address recipient,
-        OfferItem calldata /* offer */,
-        ConsiderationItem[] calldata /* consideration */,
+        OfferItem calldata, /* offer */
+        ConsiderationItem[] calldata, /* consideration */
         TraitRedemption[] calldata /* traitRedemptions */
     ) external virtual {
         // Require that msg.sender is valid.
@@ -43,51 +37,11 @@ contract ERC1155ShipyardRedeemableMintable is
         _mint(recipient, _nextTokenId - 1, 1, "");
     }
 
-    function batchSetTrait(
-        uint256[] memory tokenIds,
-        bytes32 traitKey,
-        bytes32[] memory traitValues
-    ) public onlyOwner {
-        require(
-            tokenIds.length == traitValues.length,
-            "tokenIds and traitValues values must have the same length"
-        );
-
-        for (uint i = 0; i < tokenIds.length; i++) {
-            setTrait(tokenIds[i], traitKey, traitValues[i]);
-        }
-    }
-
-    function mint(
-        address to,
-        uint256 tokenId,
-        uint256 amount
-    ) public onlyOwner {
-        _mint(to, tokenId, amount, "");
-    }
-
-    function adminMint(
-        address to,
-        uint256 numTokens,
-        uint256 amount
-    ) public onlyOwner {
-        for (uint i = 0; i < numTokens; i++) {
-            ++_nextTokenId;
-            _mint(to, _nextTokenId - 1, amount, "");
-        }
-    }
-
-    function getRedeemablesContracts()
-        external
-        view
-        returns (address[] memory)
-    {
+    function getRedeemablesContracts() external view returns (address[] memory) {
         return _erc7498RedeemablesContracts;
     }
 
-    function setRedeemablesContracts(
-        address[] calldata redeemablesContracts
-    ) external onlyOwner {
+    function setRedeemablesContracts(address[] calldata redeemablesContracts) external onlyOwner {
         _erc7498RedeemablesContracts = redeemablesContracts;
     }
 
@@ -106,11 +60,14 @@ contract ERC1155ShipyardRedeemableMintable is
         }
     }
 
-    function supportsInterface(
-        bytes4 interfaceId
-    ) public view virtual override(ERC1155ShipyardRedeemable) returns (bool) {
-        return
-            interfaceId == type(IRedemptionMintable).interfaceId ||
-            ERC1155ShipyardRedeemable.supportsInterface(interfaceId);
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        virtual
+        override(ERC1155ShipyardRedeemable)
+        returns (bool)
+    {
+        return interfaceId == type(IRedemptionMintable).interfaceId
+            || ERC1155ShipyardRedeemable.supportsInterface(interfaceId);
     }
 }

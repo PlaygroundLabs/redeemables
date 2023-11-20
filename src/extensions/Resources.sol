@@ -21,4 +21,12 @@ contract Resources is ERC1155ShipyardRedeemableMintable {
         // Mint tokens to the recipient based on the configuration of the offer
         _mint(recipient, offer.identifierOrCriteria, offer.endAmount, "");
     }
+
+    function mint(
+        address to,
+        uint256 tokenId,
+        uint256 amount
+    ) public onlyOwner {
+        _mint(to, tokenId, amount, "");
+    }
 }

@@ -6,7 +6,7 @@ import {ERC721ShipyardRedeemableMintableRentable} from "../src/extensions/ERC721
 import {ERC721ShipyardRedeemableMintable} from "../src/extensions/ERC721ShipyardRedeemableMintable.sol";
 import {Campaign, CampaignParams, CampaignRequirements, TraitRedemption} from "../src/lib/RedeemablesStructs.sol";
 import {OfferItem, ConsiderationItem} from "seaport-types/src/lib/ConsiderationStructs.sol";
-import {ERC1155ShipyardRedeemableMintable} from "../src/extensions/ERC1155ShipyardRedeemableMintable.sol";
+import {Certificates} from "../src/extensions/Certificates.sol";
 import {Resources} from "../src/extensions/Resources.sol";
 import {TestERC20} from "../test/utils/mocks/TestERC20.sol";
 import {BaseRedeemablesTest} from "./utils/BaseRedeemablesTest.sol";
@@ -16,8 +16,8 @@ import {console} from "forge-std/console.sol";
 
 contract LootboxTests is Test {
     ERC721ShipyardRedeemableMintable lootboxes;
-    ERC1155ShipyardRedeemableMintable certificates;
-    ERC1155ShipyardRedeemableMintable resources;
+    Certificates certificates;
+    Resources resources;
     ERC721ShipyardRedeemableMintableRentable ships;
     ERC721ShipyardRedeemableMintable cosmetics;
     TestERC20 weth;
@@ -41,7 +41,7 @@ contract LootboxTests is Test {
             "CNC-CLBX"
         );
 
-        certificates = new ERC1155ShipyardRedeemableMintable(
+        certificates = new Certificates(
             "Captain & Company - Certificates",
             "CNC-CERTS"
         );

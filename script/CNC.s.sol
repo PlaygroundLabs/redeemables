@@ -11,7 +11,7 @@ import {BURN_ADDRESS} from "../src/lib/RedeemablesConstants.sol";
 
 import {TestERC20} from "../test/utils/mocks/TestERC20.sol";
 import {ERC721ShipyardRedeemableMintable} from "../src/extensions/ERC721ShipyardRedeemableMintable.sol";
-import {ERC1155ShipyardRedeemableMintable} from "../src/extensions/ERC1155ShipyardRedeemableMintable.sol";
+import {Certificates} from "../src/extensions/Certificates.sol";
 import {ERC721ShipyardRedeemableMintableRentable} from "../src/extensions/ERC721ShipyardRedeemableMintableRentable.sol";
 
 contract CNCContractScript is Script, Test {
@@ -71,9 +71,7 @@ contract CNCContractScript is Script, Test {
                 lootboxesAdddr
             );
 
-        ERC1155ShipyardRedeemableMintable certificates = ERC1155ShipyardRedeemableMintable(
-                certificatesAddr
-            );
+        Certificates certificates = Certificates(certificatesAddr);
 
         lootboxes.mint(msg.sender, tokenId);
 
@@ -119,9 +117,7 @@ contract CNCContractScript is Script, Test {
         // Setups the certificates campaign.
         // A single lootbox should yield a certificate.
 
-        ERC1155ShipyardRedeemableMintable certificates = ERC1155ShipyardRedeemableMintable(
-                certificatesAddr
-            );
+        Certificates certificates = Certificates(certificatesAddr);
 
         OfferItem[] memory offer = new OfferItem[](5);
         offer[0] = OfferItem({
@@ -561,9 +557,7 @@ contract CNCContractScript is Script, Test {
         uint32 resourcesTokenId
     ) public returns (uint256) {
         // Sets up a single campaign for resources given the parameters
-        ERC1155ShipyardRedeemableMintable resources = ERC1155ShipyardRedeemableMintable(
-                resourcesAddr
-            );
+        Resources resources = Resources(resourcesAddr);
 
         OfferItem[] memory offer = new OfferItem[](1);
         offer[0] = OfferItem({
@@ -613,8 +607,10 @@ contract CNCContractScript is Script, Test {
             requirements: requirements
         });
 
-        uint256 campaignId = ERC1155ShipyardRedeemableMintable(resourcesAddr)
-            .createCampaign(campaign, "uri://");
+        uint256 campaignId = Resources(resourcesAddr).createCampaign(
+            campaign,
+            "uri://"
+        );
         return campaignId;
     }
 
@@ -761,7 +757,7 @@ contract CNCContractScript is Script, Test {
     function mintAndSetTraits(address certificatesAddr) public {
         // Test function for minting and setting traits
         // I used this set up some test certificates for chris
-        ERC1155ShipyardRedeemableMintable certificates = ERC1155ShipyardRedeemableMintable(
+        Certificates certificates = Certificates(
                 certificatesAddr
             );
         // for (uint i = 10; i < 60; i++) {
@@ -800,7 +796,7 @@ contract CNCContractScript is Script, Test {
         //         "CNC-CLBX"
         //     );
 
-        ERC1155ShipyardRedeemableMintable certificates = new ERC1155ShipyardRedeemableMintable(
+        Certificates certificates = new Certificates(
                 "Captain & Company - Certificates",
                 "CNC-CERTS"
             );
