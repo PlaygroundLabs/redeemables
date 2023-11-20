@@ -503,6 +503,8 @@ contract LootboxTests is Test {
 
         certificates.mint(addr1, 1, 1);
         certificates.adminMint(addr1, 2, 1);
+
+        vm.expectRevert();
         certificates.burn(addr1, 1, 1);
 
         vm.startPrank(addr2);
@@ -512,11 +514,15 @@ contract LootboxTests is Test {
 
         vm.expectRevert();
         certificates.adminMint(addr2, 4, 1);
+        vm.stopPrank(); // end addr2 prank
 
+        vm.startPrank(addr1);
+
+        // Try to have addr1 burn addr2's tokens
         vm.expectRevert();
         certificates.burn(addr2, 3, 1);
 
-        vm.stopPrank();
+        vm.stopPrank(); // end addr1 prank
     }
 
     function testBatchSetTrait() public {
