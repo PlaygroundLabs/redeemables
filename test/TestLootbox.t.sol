@@ -163,7 +163,7 @@ contract LootboxTests is Test {
             identifierOrCriteria: t2LumberTokenId,
             startAmount: 10,
             endAmount: 10,
-            recipient: payable(CNC_TREASURY)
+            recipient: payable(BURN_ADDRESS)
         });
 
         consideration[2] = ConsiderationItem({
@@ -172,7 +172,7 @@ contract LootboxTests is Test {
             identifierOrCriteria: t2OreTokenId,
             startAmount: 10,
             endAmount: 10,
-            recipient: payable(CNC_TREASURY)
+            recipient: payable(BURN_ADDRESS)
         });
 
         // ETH consideration

@@ -233,7 +233,7 @@ contract CNCContractScript is Script, Test {
             identifierOrCriteria: t3LumberTokenId,
             startAmount: shipLumberConsidered,
             endAmount: shipLumberConsidered,
-            recipient: payable(CNC_TREASURY)
+            recipient: payable(BURN_ADDRESS)
         });
 
         consideration[2] = ConsiderationItem({
@@ -242,7 +242,7 @@ contract CNCContractScript is Script, Test {
             identifierOrCriteria: t3OreTokenId,
             startAmount: shipOreConsidered,
             endAmount: shipOreConsidered,
-            recipient: payable(CNC_TREASURY)
+            recipient: payable(BURN_ADDRESS)
         });
 
         consideration[3] = ConsiderationItem({
@@ -398,7 +398,7 @@ contract CNCContractScript is Script, Test {
             identifierOrCriteria: t2LumberTokenId,
             startAmount: shipLumberConsidered,
             endAmount: shipLumberConsidered,
-            recipient: payable(CNC_TREASURY)
+            recipient: payable(BURN_ADDRESS)
         });
 
         consideration[2] = ConsiderationItem({
@@ -407,7 +407,7 @@ contract CNCContractScript is Script, Test {
             identifierOrCriteria: t2OreTokenId,
             startAmount: shipOreConsidered,
             endAmount: shipOreConsidered,
-            recipient: payable(CNC_TREASURY)
+            recipient: payable(BURN_ADDRESS)
         });
 
         consideration[3] = ConsiderationItem({
@@ -840,11 +840,25 @@ contract CNCContractScript is Script, Test {
 
         // Sepolia v5 addresses
         address certificatesAddr = 0xCce4a77f18e20C2526088631FA849CD20F629f0A;
+        address shipsAddr = 0x830AcC5cfE34A5A2f988AF783611a7166f88C0d1;
+        address resourcesAddr = 0xaDCA84042C628A04009E2375E8879F874f2E971D;
 
         // Used for on-chain, not locally
-        mintAndSetTraits(certificatesAddr);
+        // mintAndSetTraits(certificatesAddr);
 
         // setUpCertificatesCampaign(lootboxesAddr, certificatesAddr);
+
+        setUpWraithBlueprintCampaign(
+            shipsAddr,
+            certificatesAddr,
+            resourcesAddr
+        );
+
+        setUpClockworkBlueprintCampaign(
+            shipsAddr,
+            certificatesAddr,
+            resourcesAddr
+        );
 
         // setUpShipCampaigns(shipsAddr, certificatesAddr, resourcesAddr);
         // setUpResourcesCampaigns(resourcesAddr, certificatesAddr);
