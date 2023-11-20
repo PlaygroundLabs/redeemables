@@ -52,10 +52,14 @@ contract CNCContractScript is Script, Test {
     uint256 clockworkEthConsidered = 0.015 ether;
     uint32 resourcesOffered = 10_000;
 
-    uint32 campaignStartTime = 1698796800; //  seconds since epoch - nov 1 2023
+    // uint32 campaignStartTime = 1698796800; //  seconds since epoch - nov 1 2023
+    uint32 campaignStartTime = 1700586000000; //  nov 21, 12pm ET
     uint32 campaignEndTime = 2016037538; // seconds since epoch  - nov 19 2033
     uint32 maxCertificateCampaignRedemptions = 6_500; // for the lootbox/certs campaign
     uint32 maxCampaignRedemptions = 100_000; // for all other campaigns
+
+    string certCampainURI =
+        "ipfs://Qmd1svWLxdjRUCxDCv6i6MFZtcU6SY56mD6JM8Ds1ZrXPB";
 
     function testLootboxRedeem(
         address lootboxesAdddr,
@@ -188,7 +192,7 @@ contract CNCContractScript is Script, Test {
 
         uint campaignId = certificates.createCampaign(
             campaign,
-            "ipfs://Qmd1svWLxdjRUCxDCv6i6MFZtcU6SY56mD6JM8Ds1ZrXPB"
+            "ipfs://Qmd1svWLxdjRUCxDCv6i6MFZtcU6SY56mD6JM8Ds1ZrXPB" // TODO:
         );
         // uint campaignId = 1;
         // certificates.updateCampaign(
@@ -284,10 +288,7 @@ contract CNCContractScript is Script, Test {
             requirements: requirements
         });
 
-        uint campaignId = ships.createCampaign(
-            campaign,
-            "ipfs://Qmd1svWLxdjRUCxDCv6i6MFZtcU6SY56mD6JM8Ds1ZrXPB"
-        );
+        uint campaignId = ships.createCampaign(campaign, certCampainURI);
 
         return campaignId;
     }
@@ -802,10 +803,10 @@ contract CNCContractScript is Script, Test {
         //         "CNC-CLBX"
         //     );
 
-        // ERC1155ShipyardRedeemableMintable certificates = new ERC1155ShipyardRedeemableMintable(
-        //         "Captain & Company - Certificates",
-        //         "CNC-CERTS"
-        //     );
+        ERC1155ShipyardRedeemableMintable certificates = new ERC1155ShipyardRedeemableMintable(
+                "Captain & Company - Certificates",
+                "CNC-CERTS"
+            );
 
         // Resources resources = new Resources(
         //     "Captain & Company - Resources",
@@ -839,26 +840,29 @@ contract CNCContractScript is Script, Test {
         // address certificatesAddr = 0xDa2eBf447B5a3d7d3C1201BF185e9c031765425e;
 
         // Sepolia v5 addresses
-        address certificatesAddr = 0xCce4a77f18e20C2526088631FA849CD20F629f0A;
-        address shipsAddr = 0x830AcC5cfE34A5A2f988AF783611a7166f88C0d1;
-        address resourcesAddr = 0xaDCA84042C628A04009E2375E8879F874f2E971D;
+        // address certificatesAddr = 0xCce4a77f18e20C2526088631FA849CD20F629f0A;
+        // address shipsAddr = 0x830AcC5cfE34A5A2f988AF783611a7166f88C0d1;
+        // address resourcesAddr = 0xaDCA84042C628A04009E2375E8879F874f2E971D;
+
+        // Arbitrum Mainnet
+        address lootBoxesAddr = 0xDEEBFE062Ea7F30b2B13e3B075FA0Bb1F7cEbB85;
 
         // Used for on-chain, not locally
         // mintAndSetTraits(certificatesAddr);
 
-        // setUpCertificatesCampaign(lootboxesAddr, certificatesAddr);
+        setUpCertificatesCampaign(lootboxesAddr, certificatesAddr);
 
-        setUpWraithBlueprintCampaign(
-            shipsAddr,
-            certificatesAddr,
-            resourcesAddr
-        );
+        // setUpWraithBlueprintCampaign(
+        //     shipsAddr,
+        //     certificatesAddr,
+        //     resourcesAddr
+        // );
 
-        setUpClockworkBlueprintCampaign(
-            shipsAddr,
-            certificatesAddr,
-            resourcesAddr
-        );
+        // setUpClockworkBlueprintCampaign(
+        //     shipsAddr,
+        //     certificatesAddr,
+        //     resourcesAddr
+        // );
 
         // setUpShipCampaigns(shipsAddr, certificatesAddr, resourcesAddr);
         // setUpResourcesCampaigns(resourcesAddr, certificatesAddr);
