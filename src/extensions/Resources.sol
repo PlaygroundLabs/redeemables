@@ -18,7 +18,6 @@ contract Resources is ERC1155ShipyardRedeemableMintable {
         TraitRedemption[] calldata /* traitRedemptions */
     ) external override(ERC1155ShipyardRedeemableMintable) {
         _requireValidRedeemablesCaller();
-        // Mint tokens to the recipient based on the configuration of the offer
         _mint(recipient, offer.identifierOrCriteria, offer.endAmount, "");
     }
 
