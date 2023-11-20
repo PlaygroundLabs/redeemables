@@ -15,7 +15,7 @@ import {ERC1155ShipyardRedeemableMintable} from "../src/extensions/ERC1155Shipya
 import {ERC721ShipyardRedeemableMintableRentable} from "../src/extensions/ERC721ShipyardRedeemableMintableRentable.sol";
 
 contract CNCContractScript is Script, Test {
-    address CNC_TREASURY = 0x2DC39C543028933ea5e45851Fa84ad8F95C4c1DE; // TODO: update me later
+    address CNC_TREASURY = msg.sender;
 
     // 0x6365727454797065000000000000000000000000000000000000000000000000
     bytes32 traitKey = bytes32("certType");
@@ -59,7 +59,7 @@ contract CNCContractScript is Script, Test {
     uint32 maxCampaignRedemptions = 100_000; // for all other campaigns
 
     string certCampainURI =
-        "ipfs://Qmd1svWLxdjRUCxDCv6i6MFZtcU6SY56mD6JM8Ds1ZrXPB";
+        "ipfs://QmfEGHX8SNSavpVQ1kJUJ2wKx2gJqprAwRdw2BKFbbqK1v";
 
     function testLootboxRedeem(
         address lootboxesAdddr,
@@ -190,10 +190,7 @@ contract CNCContractScript is Script, Test {
             requirements: requirements
         });
 
-        uint campaignId = certificates.createCampaign(
-            campaign,
-            "ipfs://Qmd1svWLxdjRUCxDCv6i6MFZtcU6SY56mD6JM8Ds1ZrXPB" // TODO:
-        );
+        uint campaignId = certificates.createCampaign(campaign, certCampainURI);
         // uint campaignId = 1;
         // certificates.updateCampaign(
         //     campaignId,
@@ -288,7 +285,7 @@ contract CNCContractScript is Script, Test {
             requirements: requirements
         });
 
-        uint campaignId = ships.createCampaign(campaign, certCampainURI);
+        uint campaignId = ships.createCampaign(campaign, "");
 
         return campaignId;
     }
