@@ -504,9 +504,6 @@ contract LootboxTests is Test {
         certificates.mint(addr1, 1, 1);
         certificates.adminMint(addr1, 2, 1);
 
-        vm.expectRevert();
-        certificates.burn(addr1, 1, 1);
-
         vm.startPrank(addr2);
 
         vm.expectRevert();
@@ -516,13 +513,23 @@ contract LootboxTests is Test {
         certificates.adminMint(addr2, 4, 1);
         vm.stopPrank(); // end addr2 prank
 
-        vm.startPrank(addr1);
+        // Test burning permissions
+        assertEq(certificates.balanceOf(addr1, 2), 1);
 
-        // Try to have addr1 burn addr2's tokens
+        // a) msg.sender can't burn addr1's tokens
         vm.expectRevert();
-        certificates.burn(addr2, 3, 1);
+        certificates.burn(addr1, 1, 1);
 
-        vm.stopPrank(); // end addr1 prank
+        // b) addr2 can't burn addr1's tokens without approval
+        vm.prank(addr2);
+        vm.expectRevert();
+        certificates.burn(addr1, 3, 1);
+
+        // c) addr2 can burn addr1's tokens without approval
+        vm.prank(addr1);
+        certificates.setApprovalForAll(addr2, true);
+        vm.prank(addr2);
+        certificates.burn(addr1, 2, 1);
     }
 
     function testBatchSetTrait() public {
