@@ -77,10 +77,6 @@ contract ERC1155ShipyardRedeemableMintable is
         }
     }
 
-    function burn(address account, uint256 id, uint256 value) public {
-        _burn(msg.sender, account, id, value);
-    }
-
     function getRedeemablesContracts()
         external
         view

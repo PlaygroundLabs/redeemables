@@ -37,8 +37,8 @@ contract ERC721ShipyardRedeemableMintable is
     function mintRedemption(
         uint256 /* campaignId */,
         address recipient,
-        OfferItem calldata, /* offer */
-        ConsiderationItem[] calldata, /* consideration */
+        OfferItem calldata /* offer */,
+        ConsiderationItem[] calldata /* consideration */,
         TraitRedemption[] calldata /* traitRedemptions */
     ) external {
         // Require that msg.sender is valid.
@@ -110,20 +110,6 @@ contract ERC721ShipyardRedeemableMintable is
             return true;
         }
         return super.isApprovedForAll(owner, operator);
-    }
-
-    /**
-     * @notice Burns `tokenId`. The caller must own `tokenId` or be an
-     *         approved operator.
-     *
-     * @param tokenId The token id to burn.
-     */
-    // solhint-disable-next-line comprehensive-interface
-    function burn(uint256 tokenId) external {
-        _burn(
-            msg.sender == _preapprovedAddress ? address(0) : msg.sender,
-            tokenId
-        );
     }
 
     function mint(address to, uint256 tokenId) public onlyOwner {
