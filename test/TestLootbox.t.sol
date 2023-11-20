@@ -3,6 +3,7 @@ pragma solidity ^0.8.19;
 import {ERC721ShipyardRedeemableMintable} from "../src/extensions/ERC721ShipyardRedeemableMintable.sol";
 import {ItemType} from "seaport-types/src/lib/ConsiderationEnums.sol";
 import {ERC721ShipyardRedeemableMintableRentable} from "../src/extensions/ERC721ShipyardRedeemableMintableRentable.sol";
+import {ERC721ShipyardRedeemableMintable} from "../src/extensions/ERC721ShipyardRedeemableMintable.sol";
 import {Campaign, CampaignParams, CampaignRequirements, TraitRedemption} from "../src/lib/RedeemablesStructs.sol";
 import {OfferItem, ConsiderationItem} from "seaport-types/src/lib/ConsiderationStructs.sol";
 import {ERC1155ShipyardRedeemableMintable} from "../src/extensions/ERC1155ShipyardRedeemableMintable.sol";
@@ -14,7 +15,7 @@ import {Test} from "forge-std/Test.sol";
 import {console} from "forge-std/console.sol";
 
 contract LootboxTests is Test {
-    ERC721ShipyardRedeemableMintableRentable lootboxes;
+    ERC721ShipyardRedeemableMintable lootboxes;
     ERC1155ShipyardRedeemableMintable certificates;
     ERC1155ShipyardRedeemableMintable resources;
     ERC721ShipyardRedeemableMintableRentable ships;
@@ -35,7 +36,7 @@ contract LootboxTests is Test {
     function setUp() public virtual {
         // super.setUp();  // if inheriting
 
-        lootboxes = new ERC721ShipyardRedeemableMintableRentable(
+        lootboxes = new ERC721ShipyardRedeemableMintable(
             "Captain & Company - Clockwork Lootbox",
             "CNC-CLBX"
         );
@@ -260,10 +261,11 @@ contract LootboxTests is Test {
         vm.prank(address(0x1234));
         vm.expectRevert();
         certificates.redeem(tokenIds, msg.sender, data);
-        vm.stopPrank();
 
-        vm.prank(msg.sender);
+        vm.startPrank(msg.sender);
+        lootboxes.setApprovalForAll(address(certificates), true); // this line is new and needed
         certificates.redeem(tokenIds, msg.sender, data);
+        vm.stopPrank();
 
         vm.expectRevert(); // try redeeming again and expect revert
         certificates.redeem(tokenIds, msg.sender, data);
@@ -281,8 +283,6 @@ contract LootboxTests is Test {
 
         vm.expectRevert(); // TokenDoesNotExist
         lootboxes.ownerOf(lootboxTokenId);
-
-        vm.stopPrank();
     }
 
     function testClockworkBlueprintRedeem() public {
