@@ -822,7 +822,7 @@ contract CNCContractScript is Script, Test {
         // address shipsAddr = address(ships);
         // address certificatesAddr = address(certificates);
         // address resourcesAddr = address(resources);
-        address cosmeticsAddr = address(cosmetics);
+        // address cosmeticsAddr = address(cosmetics);
 
         // Arbitrum Goerli addresses (v2 deployment)
         // address lootboxesAddr = 0x95A863f964534527f733e2fA1f4B09D7076A80ef;
@@ -841,8 +841,8 @@ contract CNCContractScript is Script, Test {
 
         // Arbitrum Mainnet
         // address lootboxesAddr = 0xDEEBFE062Ea7F30b2B13e3B075FA0Bb1F7cEbB85;
-        address certificatesAddr = 0x54baC3eDb7ec8c55169530fBEB6e3BAd9658d98B;
-        address resourcesAddr = 0x1CA67401637Bc169471f0e3aaFca34Fb2173791F;
+        // address certificatesAddr = 0x54baC3eDb7ec8c55169530fBEB6e3BAd9658d98B;
+        // address resourcesAddr = 0x1CA67401637Bc169471f0e3aaFca34Fb2173791F;
 
         // Used for on-chain, not locally
         // mintAndSetTraits(certificatesAddr);
