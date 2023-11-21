@@ -581,18 +581,63 @@ contract LootboxTests is Test {
         vm.stopPrank();
     }
 
-    // TODO:  ships rental test. come back to this.
-    // function testShipsRentals() public {
-    //     address addr1 = address(0xDCBA);
-    //     address addr2 = address(0xABCD);
+    function testCosmeticBurnPermissions() public {
+        address addr1 = address(0xDCBA);
+        address addr2 = address(0xABCD);
 
-    //     assertEq(ships.userOf(1), address(0));
+        // mint a ship to addr1
+        cosmetics.mint(addr1, 1);
+        assertEq(cosmetics.ownerOf(1), addr1);
 
-    // ships.mint(addr1, 2);
-    //     uint64 expires = 2000000000;
-    //     ships.setUser(2, addr2, expires);
-    //     assertEq(ships.userOf(2), addr2);
-    // }
+        // a) confirm that msg.sender can't burn it.
+        vm.expectRevert();
+        cosmetics.burn(1);
+        assertEq(cosmetics.ownerOf(1), addr1);
+
+        // b) verify that addr2 can't burn it
+        vm.prank(addr2);
+        vm.expectRevert();
+        cosmetics.burn(1);
+        assertEq(cosmetics.ownerOf(1), addr1);
+
+        // c) verify that addr2 can burn it after being approved
+        vm.prank(addr1);
+        cosmetics.setApprovalForAll(addr2, true);
+        vm.prank(addr2);
+        cosmetics.burn(1);
+
+        vm.expectRevert();
+        cosmetics.ownerOf(1);
+    }
+
+    function testShipBurnPermissions() public {
+        address addr1 = address(0xDCBA);
+        address addr2 = address(0xABCD);
+
+        // mint a ship to addr1
+        ships.mint(addr1, 1);
+        assertEq(ships.ownerOf(1), addr1);
+
+        // a) confirm that msg.sender can't burn it.
+        vm.expectRevert();
+        ships.burn(1);
+        assertEq(ships.ownerOf(1), addr1);
+
+        // b) verify that addr2 can't burn it
+        vm.prank(addr2);
+        vm.expectRevert();
+        ships.burn(1);
+        assertEq(ships.ownerOf(1), addr1);
+
+        // c) verify that addr2 can burn it after being approved
+        vm.prank(addr1);
+        ships.setApprovalForAll(addr2, true);
+        vm.prank(addr2);
+        ships.burn(1);
+
+        vm.expectRevert();
+        ships.ownerOf(1);
+    }
 
     function testTesting() public {
         // A helper test of things that can be done in tests and how to do them
