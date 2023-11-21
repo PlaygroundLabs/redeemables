@@ -25,6 +25,7 @@ contract LootboxTests is Test {
     bytes32 traitKey = bytes32("certType");
     bytes32 traitValueClockworkBlueprint = bytes32(uint256(3));
     bytes32 traitValueT1Lumber = bytes32(uint256(5));
+    bytes32 traitValueCosmetic1 = bytes32(uint256(14));
     address CNC_TREASURY = address(0x4444);
 
     uint32 t1LumberTokenId = 1;
@@ -127,7 +128,10 @@ contract LootboxTests is Test {
             signer: address(0)
         });
 
-        Campaign memory campaign = Campaign({params: params, requirements: requirements});
+        Campaign memory campaign = Campaign({
+            params: params,
+            requirements: requirements
+        });
 
         uint256 campaignId = certificates.createCampaign(campaign, "uri://");
         return campaignId;
@@ -206,7 +210,10 @@ contract LootboxTests is Test {
             maxCampaignRedemptions: 10_000,
             manager: msg.sender
         });
-        Campaign memory campaign = Campaign({params: params, requirements: requirements});
+        Campaign memory campaign = Campaign({
+            params: params,
+            requirements: requirements
+        });
 
         uint256 campaignId = ships.createCampaign(campaign, "ipfs://!");
         return campaignId;
@@ -238,7 +245,14 @@ contract LootboxTests is Test {
         assertEq(certificates.balanceOf(msg.sender, 6), 0);
 
         uint256[] memory traitRedemptionTokenIds = new uint256[](0);
-        bytes memory data = abi.encode(campaignId, 0, bytes32(0), traitRedemptionTokenIds, uint256(0), bytes(""));
+        bytes memory data = abi.encode(
+            campaignId,
+            0,
+            bytes32(0),
+            traitRedemptionTokenIds,
+            uint256(0),
+            bytes("")
+        );
 
         uint256[] memory tokenIds = new uint256[](1);
         tokenIds[0] = lootboxTokenId;
@@ -283,7 +297,11 @@ contract LootboxTests is Test {
 
         // First mint things
         certificates.mint(addr2, certTokenId, 1);
-        certificates.setTrait(certTokenId, traitKey, traitValueClockworkBlueprint);
+        certificates.setTrait(
+            certTokenId,
+            traitKey,
+            traitValueClockworkBlueprint
+        );
         resources.mint(addr2, t2LumberTokenId, 20);
         resources.mint(addr2, t2OreTokenId, 20);
         weth.mint(addr2, 5);
@@ -291,7 +309,14 @@ contract LootboxTests is Test {
         // Set up data structures for redeem
         uint256[] memory traitRedemptionTokenIds = new uint256[](1);
         traitRedemptionTokenIds[0] = certTokenId;
-        bytes memory data = abi.encode(campaignId, 0, bytes32(0), traitRedemptionTokenIds, uint256(0), bytes(""));
+        bytes memory data = abi.encode(
+            campaignId,
+            0,
+            bytes32(0),
+            traitRedemptionTokenIds,
+            uint256(0),
+            bytes("")
+        );
 
         uint256[] memory tokenIds = new uint256[](4);
         tokenIds[0] = certTokenId;
@@ -371,7 +396,10 @@ contract LootboxTests is Test {
             maxCampaignRedemptions: 10_000,
             manager: msg.sender
         });
-        Campaign memory campaign = Campaign({params: params, requirements: requirements});
+        Campaign memory campaign = Campaign({
+            params: params,
+            requirements: requirements
+        });
 
         uint256 campaignId = resources.createCampaign(campaign, "ipfs://!");
         return campaignId;
@@ -392,7 +420,14 @@ contract LootboxTests is Test {
         // // Set up data structures for redeem
         uint256[] memory traitRedemptionTokenIds = new uint256[](1);
         traitRedemptionTokenIds[0] = certTokenId;
-        bytes memory data = abi.encode(campaignId, 0, bytes32(0), traitRedemptionTokenIds, uint256(0), bytes(""));
+        bytes memory data = abi.encode(
+            campaignId,
+            0,
+            bytes32(0),
+            traitRedemptionTokenIds,
+            uint256(0),
+            bytes("")
+        );
 
         uint256[] memory tokenIds = new uint256[](1);
         tokenIds[0] = certTokenId;
@@ -527,7 +562,10 @@ contract LootboxTests is Test {
         certificates.batchSetTrait(tokenIds, traitKey, traitValues);
 
         for (uint256 i = 0; i < 10; i++) {
-            assertEq(certificates.getTraitValue(tokenIds[i], traitKey), traitValues[i]);
+            assertEq(
+                certificates.getTraitValue(tokenIds[i], traitKey),
+                traitValues[i]
+            );
         }
 
         // Verify that reverts on differents sized inputs
@@ -616,5 +654,97 @@ contract LootboxTests is Test {
         //  https://mirror.xyz/horsefacts.eth/Jex2YVaO65dda6zEyfM_-DXlXhOWCAoSpOx5PLocYgw
         vm.deal(msg.sender, 1 ether);
         assertEq(address(msg.sender).balance, 1 ether);
+    }
+
+    function setUpCosmeticsCampaign(
+        address certificatesAddr,
+        address cosmeticsAddr,
+        bytes32 traitValue
+    ) public returns (uint256) {
+        OfferItem[] memory offer = new OfferItem[](1);
+        offer[0] = OfferItem({
+            itemType: ItemType.ERC721_WITH_CRITERIA,
+            token: cosmeticsAddr,
+            identifierOrCriteria: 0,
+            startAmount: 1,
+            endAmount: 1
+        });
+
+        ConsiderationItem[] memory consideration = new ConsiderationItem[](1);
+        consideration[0] = ConsiderationItem({
+            itemType: ItemType.ERC1155_WITH_CRITERIA,
+            token: certificatesAddr,
+            identifierOrCriteria: 0,
+            startAmount: 1,
+            endAmount: 1,
+            recipient: payable(BURN_ADDRESS)
+        });
+
+        TraitRedemption[] memory traitRedemptions = new TraitRedemption[](0);
+        // TraitRedemption[] memory traitRedemptions = new TraitRedemption[](1);
+        // traitRedemptions[0] = TraitRedemption({
+        //     substandard: 4, // an indicator integer
+        //     token: certificatesAddr,
+        //     traitKey: traitKey,
+        //     traitValue: traitValue, // new trait value
+        //     substandardValue: traitValue // required previous value
+        // });
+
+        // Create the second campaign for goldprint
+        CampaignRequirements[] memory requirements = new CampaignRequirements[](
+            1
+        );
+        requirements[0].offer = offer;
+        requirements[0].consideration = consideration;
+        requirements[0].traitRedemptions = traitRedemptions;
+        CampaignParams memory params = CampaignParams({
+            signer: address(0),
+            startTime: uint32(block.timestamp),
+            endTime: uint32(block.timestamp) + uint32(1_000_000),
+            maxCampaignRedemptions: 6_500,
+            manager: msg.sender
+        });
+
+        Campaign memory campaign = Campaign({
+            params: params,
+            requirements: requirements
+        });
+
+        uint256 campaignId = ERC721ShipyardRedeemableMintable(cosmeticsAddr)
+            .createCampaign(campaign, "uri://");
+        return campaignId;
+    }
+
+    function testCosmeticRedeem() public {
+        setUpCosmeticsCampaign(
+            address(certificates),
+            address(cosmetics),
+            traitValueCosmetic1
+        );
+
+        uint256 campaignId = 1;
+        uint256 certTokenId = 1;
+
+        // // First mint things
+        certificates.mint(msg.sender, certTokenId, 1);
+        certificates.setTrait(certTokenId, traitKey, traitValueCosmetic1);
+
+        // // Set up data structures for redeem
+        uint256[] memory traitRedemptionTokenIds = new uint256[](1);
+        traitRedemptionTokenIds[0] = certTokenId;
+        bytes memory data = abi.encode(
+            campaignId,
+            0,
+            bytes32(0),
+            traitRedemptionTokenIds,
+            uint256(0),
+            bytes("")
+        );
+
+        uint256[] memory tokenIds = new uint256[](1);
+        tokenIds[0] = certTokenId;
+
+        certificates.setApprovalForAll(address(cosmetics), true);
+        cosmetics.redeem(tokenIds, msg.sender, data);
     }
 }
