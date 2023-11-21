@@ -680,15 +680,14 @@ contract LootboxTests is Test {
             recipient: payable(BURN_ADDRESS)
         });
 
-        TraitRedemption[] memory traitRedemptions = new TraitRedemption[](0);
-        // TraitRedemption[] memory traitRedemptions = new TraitRedemption[](1);
-        // traitRedemptions[0] = TraitRedemption({
-        //     substandard: 4, // an indicator integer
-        //     token: certificatesAddr,
-        //     traitKey: traitKey,
-        //     traitValue: traitValue, // new trait value
-        //     substandardValue: traitValue // required previous value
-        // });
+        TraitRedemption[] memory traitRedemptions = new TraitRedemption[](1);
+        traitRedemptions[0] = TraitRedemption({
+            substandard: 4, // an indicator integer
+            token: certificatesAddr,
+            traitKey: traitKey,
+            traitValue: traitValue, // new trait value
+            substandardValue: traitValue // required previous value
+        });
 
         // Create the second campaign for goldprint
         CampaignRequirements[] memory requirements = new CampaignRequirements[](
@@ -716,6 +715,8 @@ contract LootboxTests is Test {
     }
 
     function testCosmeticRedeem() public {
+        address addr1 = address(0xABCD);
+
         setUpCosmeticsCampaign(
             address(certificates),
             address(cosmetics),
@@ -723,13 +724,13 @@ contract LootboxTests is Test {
         );
 
         uint256 campaignId = 1;
-        uint256 certTokenId = 1;
+        uint256 certTokenId = 7;
 
-        // // First mint things
-        certificates.mint(msg.sender, certTokenId, 1);
+        // First mint things
+        certificates.mint(addr1, certTokenId, 1);
         certificates.setTrait(certTokenId, traitKey, traitValueCosmetic1);
 
-        // // Set up data structures for redeem
+        // Set up data structures for redeem
         uint256[] memory traitRedemptionTokenIds = new uint256[](1);
         traitRedemptionTokenIds[0] = certTokenId;
         bytes memory data = abi.encode(
@@ -744,7 +745,9 @@ contract LootboxTests is Test {
         uint256[] memory tokenIds = new uint256[](1);
         tokenIds[0] = certTokenId;
 
+        vm.startPrank(addr1);
         certificates.setApprovalForAll(address(cosmetics), true);
         cosmetics.redeem(tokenIds, msg.sender, data);
+        vm.stopPrank();
     }
 }
