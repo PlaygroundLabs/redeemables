@@ -15,7 +15,7 @@ import {Certificates} from "../src/extensions/Certificates.sol";
 import {ERC721ShipyardRedeemableMintableRentable} from "../src/extensions/ERC721ShipyardRedeemableMintableRentable.sol";
 
 contract CNCContractScript is Script, Test {
-    address CNC_TREASURY = msg.sender;
+    address CNC_TREASURY = 0x3E1F952C0167305996105DF78C4d84aFBCA0E51A;
 
     // 0x6365727454797065000000000000000000000000000000000000000000000000
     bytes32 traitKey = bytes32("certType");
@@ -285,9 +285,10 @@ contract CNCContractScript is Script, Test {
             requirements: requirements
         });
 
-        uint256 campaignId = ships.createCampaign(campaign, "");
+        // uint256 campaignId = ships.createCampaign(campaign, "");
+        ships.updateCampaign(1, campaign, "");
 
-        return campaignId;
+        return 1;
     }
 
     function setUpWraithGoldprintCampaign(
@@ -447,11 +448,17 @@ contract CNCContractScript is Script, Test {
             requirements: requirements
         });
 
-        uint256 campaignId = ships.createCampaign(
+        // uint256 campaignId = ships.createCampaign(
+        //     campaign,
+        //     "ipfs://QmQjubc6guHReNW5Es5ZrgDtJRwXk2Aia7BkVoLJGaCRqP"
+        // );
+        ships.updateCampaign(
+            3,
             campaign,
             "ipfs://QmQjubc6guHReNW5Es5ZrgDtJRwXk2Aia7BkVoLJGaCRqP"
         );
-        return campaignId;
+
+        return 3;
     }
 
     function setUpClockworkGoldprintCampaign(
@@ -811,21 +818,21 @@ contract CNCContractScript is Script, Test {
         //     "CNC-RSRCS"
         // );
 
-        ERC721ShipyardRedeemableMintableRentable ships = new ERC721ShipyardRedeemableMintableRentable(
-                "Captain & Company - Ships",
-                "CNC-SHIPS"
-            );
+        // ERC721ShipyardRedeemableMintableRentable ships = new ERC721ShipyardRedeemableMintableRentable(
+        //         "Captain & Company - Ships",
+        //         "CNC-SHIPS"
+        //     );
 
-        ERC721ShipyardRedeemableMintable cosmetics = new ERC721ShipyardRedeemableMintable(
-                "Captain & Company - Cosmetics",
-                "CNC-COSM"
-            );
+        // ERC721ShipyardRedeemableMintable cosmetics = new ERC721ShipyardRedeemableMintable(
+        //         "Captain & Company - Cosmetics",
+        //         "CNC-COSM"
+        //     );
 
         // address lootboxesAddr = address(lootboxes);
-        address shipsAddr = address(ships);
+        // address shipsAddr = address(ships);
         // address certificatesAddr = address(certificates);
         // address resourcesAddr = address(resources);
-        address cosmeticsAddr = address(cosmetics);
+        // address cosmeticsAddr = address(cosmetics);
 
         // Arbitrum Goerli addresses (v2 deployment)
         // address lootboxesAddr = 0x95A863f964534527f733e2fA1f4B09D7076A80ef;
@@ -846,15 +853,26 @@ contract CNCContractScript is Script, Test {
         address lootboxesAddr = 0xDEEBFE062Ea7F30b2B13e3B075FA0Bb1F7cEbB85;
         address certificatesAddr = 0x54baC3eDb7ec8c55169530fBEB6e3BAd9658d98B;
         address resourcesAddr = 0x1CA67401637Bc169471f0e3aaFca34Fb2173791F;
+        address shipsAddr = 0x110dF204913976caafD2a7c2738b039B1dbF9088;
 
         // Used for on-chain, not locally
         // mintAndSetTraits(certificatesAddr);
 
         // setUpCertificatesCampaign(lootboxesAddr, certificatesAddr);
+        setUpClockworkBlueprintCampaign(
+            shipsAddr,
+            certificatesAddr,
+            resourcesAddr
+        );
+        setUpWraithBlueprintCampaign(
+            shipsAddr,
+            certificatesAddr,
+            resourcesAddr
+        );
 
-        setUpShipCampaigns(shipsAddr, certificatesAddr, resourcesAddr);
+        // setUpShipCampaigns(shipsAddr, certificatesAddr, resourcesAddr);
         // setUpResourcesCampaigns(resourcesAddr, certificatesAddr);
-        setUpCosmeticsCampaigns(cosmeticsAddr, certificatesAddr);
+        // setUpCosmeticsCampaigns(cosmeticsAddr, certificatesAddr);
 
         // testLootboxRedeem(lootboxesAddr, certificatesAddr);
 
