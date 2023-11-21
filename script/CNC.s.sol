@@ -803,10 +803,10 @@ contract CNCContractScript is Script, Test {
         //         "CNC-CERTS"
         //     );
 
-        Resources resources = new Resources(
-            "Captain & Company - Resources",
-            "CNC-RSRCS"
-        );
+        // Resources resources = new Resources(
+        //     "Captain & Company - Resources",
+        //     "CNC-RSRCS"
+        // );
 
         // ERC721ShipyardRedeemableMintableRentable ships = new ERC721ShipyardRedeemableMintableRentable(
         //         "Captain & Company - Ships",
@@ -816,13 +816,13 @@ contract CNCContractScript is Script, Test {
         // ERC721ShipyardRedeemableMintable cosmetics = new ERC721ShipyardRedeemableMintable(
         //         "Cosmetics",
         //         "CNS-COSM"
-        // );
+        //     );
 
         // address lootboxesAddr = address(lootboxes);
         // address shipsAddr = address(ships);
         // address certificatesAddr = address(certificates);
-        address resourcesAddr = address(resources);
-        // address cosmeticsAddr = address(cosmetics);
+        // address resourcesAddr = address(resources);
+        address cosmeticsAddr = address(cosmetics);
 
         // Arbitrum Goerli addresses (v2 deployment)
         // address lootboxesAddr = 0x95A863f964534527f733e2fA1f4B09D7076A80ef;
@@ -842,6 +842,7 @@ contract CNCContractScript is Script, Test {
         // Arbitrum Mainnet
         // address lootboxesAddr = 0xDEEBFE062Ea7F30b2B13e3B075FA0Bb1F7cEbB85;
         address certificatesAddr = 0x54baC3eDb7ec8c55169530fBEB6e3BAd9658d98B;
+        address resourcesAddr = 0x1CA67401637Bc169471f0e3aaFca34Fb2173791F;
 
         // Used for on-chain, not locally
         // mintAndSetTraits(certificatesAddr);
@@ -861,7 +862,7 @@ contract CNCContractScript is Script, Test {
         // );
 
         // setUpShipCampaigns(shipsAddr, certificatesAddr, resourcesAddr);
-        setUpResourcesCampaigns(resourcesAddr, certificatesAddr);
+        // setUpResourcesCampaigns(resourcesAddr, certificatesAddr);
         // setUpCosmeticsCampaigns(cosmeticsAddr, certificatesAddr);
 
         // testLootboxRedeem(lootboxesAddr, certificatesAddr);
