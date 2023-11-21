@@ -5,11 +5,7 @@ interface IERC4907 {
     // Logged when the user of a token assigns a new user or updates expires
     /// @notice Emitted when the `user` of an NFT or the `expires` of the `user` is changed
     /// The zero address for user indicates that there is no user address
-    event UpdateUser(
-        uint256 indexed tokenId,
-        address indexed user,
-        uint64 expires
-    );
+    event UpdateUser(uint256 indexed tokenId, address indexed user, uint64 expires);
 
     /// @notice set the user and expires of a NFT
     /// @dev The zero address indicates there is no user

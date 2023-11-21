@@ -11,23 +11,14 @@ contract ERC721ShipyardRedeemableMintableRentable is ERC721ShipyardRedeemableMin
         address user; // address of user role
         uint64 expires; // unix timestamp, user expires
     }
+
     mapping(uint256 => UserInfo) internal _users;
 
-    constructor(
-        string memory name_,
-        string memory symbol_
-    ) ERC721ShipyardRedeemableMintable(name_, symbol_) {}
+    constructor(string memory name_, string memory symbol_) ERC721ShipyardRedeemableMintable(name_, symbol_) {}
 
     /// @dev See {IERC4907-setUser}
-    function setUser(
-        uint256 tokenId,
-        address user,
-        uint64 expires
-    ) public virtual {
-        require(
-            _isApprovedOrOwner(msg.sender, tokenId),
-            "ERC4907: transfer caller is not owner nor approved"
-        );
+    function setUser(uint256 tokenId, address user, uint64 expires) public virtual {
+        require(_isApprovedOrOwner(msg.sender, tokenId), "ERC4907: transfer caller is not owner nor approved");
         UserInfo storage info = _users[tokenId];
         info.user = user;
         info.expires = expires;
@@ -44,19 +35,13 @@ contract ERC721ShipyardRedeemableMintableRentable is ERC721ShipyardRedeemableMin
     }
 
     /// @dev See {IERC4907-userExpires}
-    function userExpires(
-        uint256 tokenId
-    ) public view virtual returns (uint256) {
+    function userExpires(uint256 tokenId) public view virtual returns (uint256) {
         return _users[tokenId].expires;
     }
 
     /// @dev See {IERC165-supportsInterface}
-    function supportsInterface(
-        bytes4 interfaceId
-    ) public view virtual override returns (bool) {
-        return
-            interfaceId == type(IERC4907).interfaceId ||
-            super.supportsInterface(interfaceId);
+    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
+        return interfaceId == type(IERC4907).interfaceId || super.supportsInterface(interfaceId);
     }
 
     /// @dev delete UserInfo when burn
