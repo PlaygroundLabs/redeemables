@@ -53,10 +53,11 @@ contract CNCContractScript is Script, Test {
     uint32 resourcesOffered = 10_000;
 
     // uint32 campaignStartTime = 1698796800; //  seconds since epoch - nov 1 2023
-    uint32 campaignStartTime = 1700586000; //  nov 21, 12pm ET
+    // uint32 campaignStartTime = 1700586000; //  nov 21, 12pm ET
+    uint32 campaignStartTime = 1700510400; //  nov 20, 3pm ET
     uint32 campaignEndTime = 2016037538; // seconds since epoch  - nov 19 2033
     uint32 maxCertificateCampaignRedemptions = 6_500; // for the lootbox/certs campaign
-    uint32 maxCampaignRedemptions = 100_000; // for all other campaigns
+    uint32 maxCampaignRedemptions = 100_000_000; // for all other campaigns
 
     string certCampainURI =
         "ipfs://QmfEGHX8SNSavpVQ1kJUJ2wKx2gJqprAwRdw2BKFbbqK1v";
@@ -609,7 +610,7 @@ contract CNCContractScript is Script, Test {
 
         uint256 campaignId = Resources(resourcesAddr).createCampaign(
             campaign,
-            "uri://"
+            ""
         );
         return campaignId;
     }
@@ -757,9 +758,7 @@ contract CNCContractScript is Script, Test {
     function mintAndSetTraits(address certificatesAddr) public {
         // Test function for minting and setting traits
         // I used this set up some test certificates for chris
-        Certificates certificates = Certificates(
-                certificatesAddr
-            );
+        Certificates certificates = Certificates(certificatesAddr);
         // for (uint i = 10; i < 60; i++) {
         //     certificates.mint(msg.sender, i, 1); // certificate
         // }
@@ -768,13 +767,16 @@ contract CNCContractScript is Script, Test {
         //     certificates.setTrait(i, traitKey, traitValueWraithGoldprint);
         // }
 
-        for (uint i = 1; i < 6; i++) {
-            uint tokenIdBase = 100000 + (i * 100);
+        // address receiver = msg.sender;
+        address receiver = 0xb9131A703595189c021014d85F74e7BFCb30f8D6;
+
+        for (uint i = 1; i < 2; i++) {
+            uint tokenIdBase = 400000 + (i * 100);
             for (uint j = 1; j <= 19; j++) {
                 uint tokenId = tokenIdBase + j;
                 bytes32 traitValue = bytes32(j);
 
-                certificates.mint(msg.sender, tokenId, 1); // certificate
+                certificates.mint(receiver, tokenId, 1); // certificate
                 certificates.setTrait(tokenId, traitKey, traitValue);
             }
         }
@@ -796,15 +798,15 @@ contract CNCContractScript is Script, Test {
         //         "CNC-CLBX"
         //     );
 
-        Certificates certificates = new Certificates(
-                "Captain & Company - Certificates",
-                "CNC-CERTS"
-            );
+        // Certificates certificates = new Certificates(
+        //         "Captain & Company - Certificates",
+        //         "CNC-CERTS"
+        //     );
 
-        // Resources resources = new Resources(
-        //     "Captain & Company - Resources",
-        //     "CNC-RSRCS"
-        // );
+        Resources resources = new Resources(
+            "Captain & Company - Resources",
+            "CNC-RSRCS"
+        );
 
         // ERC721ShipyardRedeemableMintableRentable ships = new ERC721ShipyardRedeemableMintableRentable(
         //         "Captain & Company - Ships",
@@ -818,8 +820,8 @@ contract CNCContractScript is Script, Test {
 
         // address lootboxesAddr = address(lootboxes);
         // address shipsAddr = address(ships);
-        address certificatesAddr = address(certificates);
-        // address resourcesAddr = address(resources);
+        // address certificatesAddr = address(certificates);
+        address resourcesAddr = address(resources);
         // address cosmeticsAddr = address(cosmetics);
 
         // Arbitrum Goerli addresses (v2 deployment)
@@ -838,12 +840,13 @@ contract CNCContractScript is Script, Test {
         // address resourcesAddr = 0xaDCA84042C628A04009E2375E8879F874f2E971D;
 
         // Arbitrum Mainnet
-        address lootboxesAddr = 0xDEEBFE062Ea7F30b2B13e3B075FA0Bb1F7cEbB85;
+        // address lootboxesAddr = 0xDEEBFE062Ea7F30b2B13e3B075FA0Bb1F7cEbB85;
+        address certificatesAddr = 0x54baC3eDb7ec8c55169530fBEB6e3BAd9658d98B;
 
         // Used for on-chain, not locally
         // mintAndSetTraits(certificatesAddr);
 
-        setUpCertificatesCampaign(lootboxesAddr, certificatesAddr);
+        // setUpCertificatesCampaign(lootboxesAddr, certificatesAddr);
 
         // setUpWraithBlueprintCampaign(
         //     shipsAddr,
@@ -858,7 +861,7 @@ contract CNCContractScript is Script, Test {
         // );
 
         // setUpShipCampaigns(shipsAddr, certificatesAddr, resourcesAddr);
-        // setUpResourcesCampaigns(resourcesAddr, certificatesAddr);
+        setUpResourcesCampaigns(resourcesAddr, certificatesAddr);
         // setUpCosmeticsCampaigns(cosmeticsAddr, certificatesAddr);
 
         // testLootboxRedeem(lootboxesAddr, certificatesAddr);
