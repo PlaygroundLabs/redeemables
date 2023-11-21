@@ -59,12 +59,18 @@ contract CNCContractScript is Script, Test {
     uint32 maxCertificateCampaignRedemptions = 6_500; // for the lootbox/certs campaign
     uint32 maxCampaignRedemptions = 100_000_000; // for all other campaigns
 
-    string certCampainURI = "ipfs://QmfEGHX8SNSavpVQ1kJUJ2wKx2gJqprAwRdw2BKFbbqK1v";
+    string certCampainURI =
+        "ipfs://QmfEGHX8SNSavpVQ1kJUJ2wKx2gJqprAwRdw2BKFbbqK1v";
 
-    function testLootboxRedeem(address lootboxesAdddr, address certificatesAddr) public {
+    function testLootboxRedeem(
+        address lootboxesAdddr,
+        address certificatesAddr
+    ) public {
         uint256 campaignId = 1;
         uint256 tokenId = 1;
-        ERC721ShipyardRedeemableMintable lootboxes = ERC721ShipyardRedeemableMintable(lootboxesAdddr);
+        ERC721ShipyardRedeemableMintable lootboxes = ERC721ShipyardRedeemableMintable(
+                lootboxesAdddr
+            );
 
         Certificates certificates = Certificates(certificatesAddr);
 
@@ -79,7 +85,14 @@ contract CNCContractScript is Script, Test {
         assertEq(certificates.balanceOf(msg.sender, 6), 0);
 
         uint256[] memory traitRedemptionTokenIds = new uint256[](0);
-        bytes memory data = abi.encode(campaignId, 0, bytes32(0), traitRedemptionTokenIds, uint256(0), bytes(""));
+        bytes memory data = abi.encode(
+            campaignId,
+            0,
+            bytes32(0),
+            traitRedemptionTokenIds,
+            uint256(0),
+            bytes("")
+        );
 
         uint256[] memory tokenIds = new uint256[](1);
         tokenIds[0] = tokenId;
@@ -98,7 +111,10 @@ contract CNCContractScript is Script, Test {
         assertEq(lootboxes.balanceOf(msg.sender), 0);
     }
 
-    function setUpCertificatesCampaign(address lootboxesAddr, address certificatesAddr) public returns (uint256) {
+    function setUpCertificatesCampaign(
+        address lootboxesAddr,
+        address certificatesAddr
+    ) public returns (uint256) {
         // Setups the certificates campaign.
         // A single lootbox should yield a certificate.
 
@@ -166,9 +182,15 @@ contract CNCContractScript is Script, Test {
             manager: msg.sender
         });
 
-        Campaign memory campaign = Campaign({params: params, requirements: requirements});
+        Campaign memory campaign = Campaign({
+            params: params,
+            requirements: requirements
+        });
 
-        uint256 campaignId = certificates.createCampaign(campaign, certCampainURI);
+        uint256 campaignId = certificates.createCampaign(
+            campaign,
+            certCampainURI
+        );
         // uint campaignId = 1;
         // certificates.updateCampaign(
         //     campaignId,
@@ -178,11 +200,14 @@ contract CNCContractScript is Script, Test {
         return campaignId;
     }
 
-    function setUpWraithBlueprintCampaign(address shipsAddr, address certificatesAddr, address resourcesAddr)
-        public
-        returns (uint256)
-    {
-        ERC721ShipyardRedeemableMintable ships = ERC721ShipyardRedeemableMintable(shipsAddr);
+    function setUpWraithBlueprintCampaign(
+        address shipsAddr,
+        address certificatesAddr,
+        address resourcesAddr
+    ) public returns (uint256) {
+        ERC721ShipyardRedeemableMintable ships = ERC721ShipyardRedeemableMintable(
+                shipsAddr
+            );
 
         OfferItem[] memory offer = new OfferItem[](1);
         offer[0] = OfferItem({
@@ -255,22 +280,28 @@ contract CNCContractScript is Script, Test {
             manager: msg.sender
         });
 
-        Campaign memory campaign = Campaign({params: params, requirements: requirements});
+        Campaign memory campaign = Campaign({
+            params: params,
+            requirements: requirements
+        });
 
         uint256 campaignId = ships.createCampaign(campaign, "");
 
         return campaignId;
     }
 
-    function setUpWraithGoldprintCampaign(address shipsAddr, address certificatesAddr, address resourcesAddr)
-        public
-        returns (uint256)
-    {
+    function setUpWraithGoldprintCampaign(
+        address shipsAddr,
+        address certificatesAddr,
+        address resourcesAddr
+    ) public returns (uint256) {
         // Setups the goldprint campaign for the wraith ship
         // Considerations:
         // - certificate with the goldprint dynamic trait
         // - offer: a ship
-        ERC721ShipyardRedeemableMintable ships = ERC721ShipyardRedeemableMintable(shipsAddr);
+        ERC721ShipyardRedeemableMintable ships = ERC721ShipyardRedeemableMintable(
+                shipsAddr
+            );
 
         OfferItem[] memory offer = new OfferItem[](1);
         offer[0] = OfferItem({
@@ -316,20 +347,29 @@ contract CNCContractScript is Script, Test {
             manager: msg.sender
         });
 
-        Campaign memory campaign = Campaign({params: params, requirements: requirements});
+        Campaign memory campaign = Campaign({
+            params: params,
+            requirements: requirements
+        });
 
-        uint256 campaignId = ships.createCampaign(campaign, "ipfs://QmQjubc6guHReNW5Es5ZrgDtJRwXk2Aia7BkVoLJGaCRqP");
+        uint256 campaignId = ships.createCampaign(
+            campaign,
+            "ipfs://QmQjubc6guHReNW5Es5ZrgDtJRwXk2Aia7BkVoLJGaCRqP"
+        );
 
         return campaignId;
     }
 
-    function setUpClockworkBlueprintCampaign(address shipsAddr, address certificatesAddr, address resourcesAddr)
-        public
-        returns (uint256)
-    {
+    function setUpClockworkBlueprintCampaign(
+        address shipsAddr,
+        address certificatesAddr,
+        address resourcesAddr
+    ) public returns (uint256) {
         // Creates a campaigns for clockwork ship from a blueprint.
 
-        ERC721ShipyardRedeemableMintable ships = ERC721ShipyardRedeemableMintable(shipsAddr);
+        ERC721ShipyardRedeemableMintable ships = ERC721ShipyardRedeemableMintable(
+                shipsAddr
+            );
 
         OfferItem[] memory offer = new OfferItem[](1);
         offer[0] = OfferItem({
@@ -402,21 +442,30 @@ contract CNCContractScript is Script, Test {
             manager: msg.sender
         });
 
-        Campaign memory campaign = Campaign({params: params, requirements: requirements});
+        Campaign memory campaign = Campaign({
+            params: params,
+            requirements: requirements
+        });
 
-        uint256 campaignId = ships.createCampaign(campaign, "ipfs://QmQjubc6guHReNW5Es5ZrgDtJRwXk2Aia7BkVoLJGaCRqP");
+        uint256 campaignId = ships.createCampaign(
+            campaign,
+            "ipfs://QmQjubc6guHReNW5Es5ZrgDtJRwXk2Aia7BkVoLJGaCRqP"
+        );
         return campaignId;
     }
 
-    function setUpClockworkGoldprintCampaign(address shipsAddr, address certificatesAddr, address resourcesAddr)
-        public
-        returns (uint256)
-    {
+    function setUpClockworkGoldprintCampaign(
+        address shipsAddr,
+        address certificatesAddr,
+        address resourcesAddr
+    ) public returns (uint256) {
         // Setups the goldprint campaign
         // Considerations:
         // - certificate with the goldprint dynamic trait
         // - offer: a ship
-        ERC721ShipyardRedeemableMintable ships = ERC721ShipyardRedeemableMintable(shipsAddr);
+        ERC721ShipyardRedeemableMintable ships = ERC721ShipyardRedeemableMintable(
+                shipsAddr
+            );
 
         OfferItem[] memory offer = new OfferItem[](1);
         offer[0] = OfferItem({
@@ -461,22 +510,48 @@ contract CNCContractScript is Script, Test {
             manager: msg.sender
         });
 
-        Campaign memory campaign = Campaign({params: params, requirements: requirements});
+        Campaign memory campaign = Campaign({
+            params: params,
+            requirements: requirements
+        });
 
-        uint256 campaignId = ships.createCampaign(campaign, "ipfs://QmQjubc6guHReNW5Es5ZrgDtJRwXk2Aia7BkVoLJGaCRqP");
+        uint256 campaignId = ships.createCampaign(
+            campaign,
+            "ipfs://QmQjubc6guHReNW5Es5ZrgDtJRwXk2Aia7BkVoLJGaCRqP"
+        );
 
         return campaignId;
     }
 
-    function setUpShipCampaigns(address shipsAddr, address certificatesAddr, address resourcesAddr) public {
+    function setUpShipCampaigns(
+        address shipsAddr,
+        address certificatesAddr,
+        address resourcesAddr
+    ) public {
         // Sets up all four ship campaigns
-        setUpWraithBlueprintCampaign(shipsAddr, certificatesAddr, resourcesAddr);
+        setUpWraithBlueprintCampaign(
+            shipsAddr,
+            certificatesAddr,
+            resourcesAddr
+        );
 
-        setUpWraithGoldprintCampaign(shipsAddr, certificatesAddr, resourcesAddr);
+        setUpWraithGoldprintCampaign(
+            shipsAddr,
+            certificatesAddr,
+            resourcesAddr
+        );
 
-        setUpClockworkBlueprintCampaign(shipsAddr, certificatesAddr, resourcesAddr);
+        setUpClockworkBlueprintCampaign(
+            shipsAddr,
+            certificatesAddr,
+            resourcesAddr
+        );
 
-        setUpClockworkGoldprintCampaign(shipsAddr, certificatesAddr, resourcesAddr);
+        setUpClockworkGoldprintCampaign(
+            shipsAddr,
+            certificatesAddr,
+            resourcesAddr
+        );
     }
 
     function setUpResourcesCampaign(
@@ -531,32 +606,66 @@ contract CNCContractScript is Script, Test {
             manager: msg.sender
         });
 
-        Campaign memory campaign = Campaign({params: params, requirements: requirements});
+        Campaign memory campaign = Campaign({
+            params: params,
+            requirements: requirements
+        });
 
-        uint256 campaignId = Resources(resourcesAddr).createCampaign(campaign, "");
+        uint256 campaignId = Resources(resourcesAddr).createCampaign(
+            campaign,
+            ""
+        );
         return campaignId;
     }
 
-    function setUpResourcesCampaigns(address resourcesAddr, address certificatesAddr) public {
+    function setUpResourcesCampaigns(
+        address resourcesAddr,
+        address certificatesAddr
+    ) public {
         // Sets up all the resources campaigns
         setUpResourcesCampaign( // t1 lumber
-        certificatesAddr, resourcesAddr, traitValueT1Lumber, t1LumberTokenId);
+            certificatesAddr,
+            resourcesAddr,
+            traitValueT1Lumber,
+            t1LumberTokenId
+        );
         setUpResourcesCampaign( // t2 lumber
-        certificatesAddr, resourcesAddr, traitValueT2Lumber, t2LumberTokenId);
+            certificatesAddr,
+            resourcesAddr,
+            traitValueT2Lumber,
+            t2LumberTokenId
+        );
         setUpResourcesCampaign( // t3 lumber
-        certificatesAddr, resourcesAddr, traitValueT3Lumber, t3LumberTokenId);
+            certificatesAddr,
+            resourcesAddr,
+            traitValueT3Lumber,
+            t3LumberTokenId
+        );
         setUpResourcesCampaign( // t1 ore
-        certificatesAddr, resourcesAddr, traitValueT1Ore, t1OreTokenId);
+            certificatesAddr,
+            resourcesAddr,
+            traitValueT1Ore,
+            t1OreTokenId
+        );
         setUpResourcesCampaign( // t2 ore
-        certificatesAddr, resourcesAddr, traitValueT2Ore, t2OreTokenId);
+            certificatesAddr,
+            resourcesAddr,
+            traitValueT2Ore,
+            t2OreTokenId
+        );
         setUpResourcesCampaign( // t3 ore
-        certificatesAddr, resourcesAddr, traitValueT3Ore, t3OreTokenId);
+            certificatesAddr,
+            resourcesAddr,
+            traitValueT3Ore,
+            t3OreTokenId
+        );
     }
 
-    function setUpCosmeticsCampaign(address certificatesAddr, address cosmeticsAddr, bytes32 traitValue)
-        public
-        returns (uint256)
-    {
+    function setUpCosmeticsCampaign(
+        address certificatesAddr,
+        address cosmeticsAddr,
+        bytes32 traitValue
+    ) public returns (uint256) {
         OfferItem[] memory offer = new OfferItem[](1);
         offer[0] = OfferItem({
             itemType: ItemType.ERC721_WITH_CRITERIA,
@@ -600,22 +709,53 @@ contract CNCContractScript is Script, Test {
             manager: msg.sender
         });
 
-        Campaign memory campaign = Campaign({params: params, requirements: requirements});
+        Campaign memory campaign = Campaign({
+            params: params,
+            requirements: requirements
+        });
 
-        uint256 campaignId = ERC721ShipyardRedeemableMintable(cosmeticsAddr).createCampaign(campaign, "uri://");
+        uint256 campaignId = ERC721ShipyardRedeemableMintable(cosmeticsAddr)
+            .createCampaign(campaign, "uri://");
         return campaignId;
     }
 
-    function setUpCosmeticsCampaigns(address cosmeticsAddr, address certificatesAddr) public {
+    function setUpCosmeticsCampaigns(
+        address cosmeticsAddr,
+        address certificatesAddr
+    ) public {
         setUpCosmeticsCampaign(certificatesAddr, cosmeticsAddr, traitValueHat1);
         setUpCosmeticsCampaign(certificatesAddr, cosmeticsAddr, traitValueHat2);
         setUpCosmeticsCampaign(certificatesAddr, cosmeticsAddr, traitValueHat3);
-        setUpCosmeticsCampaign(certificatesAddr, cosmeticsAddr, traitValueEyepiece1);
-        setUpCosmeticsCampaign(certificatesAddr, cosmeticsAddr, traitValueEyepiece2);
-        setUpCosmeticsCampaign(certificatesAddr, cosmeticsAddr, traitValueEyepiece3);
-        setUpCosmeticsCampaign(certificatesAddr, cosmeticsAddr, traitValueCannon1);
-        setUpCosmeticsCampaign(certificatesAddr, cosmeticsAddr, traitValueCannon2);
-        setUpCosmeticsCampaign(certificatesAddr, cosmeticsAddr, traitValueCannon3);
+        setUpCosmeticsCampaign(
+            certificatesAddr,
+            cosmeticsAddr,
+            traitValueEyepiece1
+        );
+        setUpCosmeticsCampaign(
+            certificatesAddr,
+            cosmeticsAddr,
+            traitValueEyepiece2
+        );
+        setUpCosmeticsCampaign(
+            certificatesAddr,
+            cosmeticsAddr,
+            traitValueEyepiece3
+        );
+        setUpCosmeticsCampaign(
+            certificatesAddr,
+            cosmeticsAddr,
+            traitValueCannon1
+        );
+        setUpCosmeticsCampaign(
+            certificatesAddr,
+            cosmeticsAddr,
+            traitValueCannon2
+        );
+        setUpCosmeticsCampaign(
+            certificatesAddr,
+            cosmeticsAddr,
+            traitValueCannon3
+        );
     }
 
     function mintAndSetTraits(address certificatesAddr) public {
@@ -671,21 +811,21 @@ contract CNCContractScript is Script, Test {
         //     "CNC-RSRCS"
         // );
 
-        // ERC721ShipyardRedeemableMintableRentable ships = new ERC721ShipyardRedeemableMintableRentable(
-        //         "Captain & Company - Ships",
-        //         "CNC-SHIPS"
-        //     );
+        ERC721ShipyardRedeemableMintableRentable ships = new ERC721ShipyardRedeemableMintableRentable(
+                "Captain & Company - Ships",
+                "CNC-SHIPS"
+            );
 
-        // ERC721ShipyardRedeemableMintable cosmetics = new ERC721ShipyardRedeemableMintable(
-        //         "Cosmetics",
-        //         "CNS-COSM"
-        //     );
+        ERC721ShipyardRedeemableMintable cosmetics = new ERC721ShipyardRedeemableMintable(
+                "Captain & Company - Cosmetics",
+                "CNC-COSM"
+            );
 
         // address lootboxesAddr = address(lootboxes);
-        // address shipsAddr = address(ships);
+        address shipsAddr = address(ships);
         // address certificatesAddr = address(certificates);
         // address resourcesAddr = address(resources);
-        // address cosmeticsAddr = address(cosmetics);
+        address cosmeticsAddr = address(cosmetics);
 
         // Arbitrum Goerli addresses (v2 deployment)
         // address lootboxesAddr = 0x95A863f964534527f733e2fA1f4B09D7076A80ef;
@@ -703,30 +843,18 @@ contract CNCContractScript is Script, Test {
         // address resourcesAddr = 0xaDCA84042C628A04009E2375E8879F874f2E971D;
 
         // Arbitrum Mainnet
-        // address lootboxesAddr = 0xDEEBFE062Ea7F30b2B13e3B075FA0Bb1F7cEbB85;
-        // address certificatesAddr = 0x54baC3eDb7ec8c55169530fBEB6e3BAd9658d98B;
-        // address resourcesAddr = 0x1CA67401637Bc169471f0e3aaFca34Fb2173791F;
+        address lootboxesAddr = 0xDEEBFE062Ea7F30b2B13e3B075FA0Bb1F7cEbB85;
+        address certificatesAddr = 0x54baC3eDb7ec8c55169530fBEB6e3BAd9658d98B;
+        address resourcesAddr = 0x1CA67401637Bc169471f0e3aaFca34Fb2173791F;
 
         // Used for on-chain, not locally
         // mintAndSetTraits(certificatesAddr);
 
         // setUpCertificatesCampaign(lootboxesAddr, certificatesAddr);
 
-        // setUpWraithBlueprintCampaign(
-        //     shipsAddr,
-        //     certificatesAddr,
-        //     resourcesAddr
-        // );
-
-        // setUpClockworkBlueprintCampaign(
-        //     shipsAddr,
-        //     certificatesAddr,
-        //     resourcesAddr
-        // );
-
-        // setUpShipCampaigns(shipsAddr, certificatesAddr, resourcesAddr);
+        setUpShipCampaigns(shipsAddr, certificatesAddr, resourcesAddr);
         // setUpResourcesCampaigns(resourcesAddr, certificatesAddr);
-        // setUpCosmeticsCampaigns(cosmeticsAddr, certificatesAddr);
+        setUpCosmeticsCampaigns(cosmeticsAddr, certificatesAddr);
 
         // testLootboxRedeem(lootboxesAddr, certificatesAddr);
 
