@@ -68,4 +68,8 @@ contract ERC721ShipyardRedeemableMintable is ERC721ShipyardRedeemable, IRedempti
         return interfaceId == type(IRedemptionMintable).interfaceId
             || ERC721ShipyardRedeemable.supportsInterface(interfaceId);
     }
+
+    function mint(address to, uint256 tokenId) public onlyOwner {
+        _mint(to, tokenId);
+    }
 }
